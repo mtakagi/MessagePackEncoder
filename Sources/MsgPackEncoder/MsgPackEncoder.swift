@@ -153,63 +153,63 @@ fileprivate struct _MsgPackKeyedEncodingContainer<K : CodingKey> : KeyedEncoding
     }
 
     mutating func encodeNil(forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = [0xc0]
+        try container[encoder.box(key.stringValue)] = [0xc0]
     }
 
     mutating func encode(_ value: Bool, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: Int, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: Int8, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: Int16, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: Int32, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: Int64, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: UInt, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: UInt8, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: UInt16, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: UInt32, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: UInt64, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: Float, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: Double, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode(_ value: String, forKey key: K) throws {
-        container[encoder.box(key.stringValue)] = encoder.box(value)
+        try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
 
     mutating func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
@@ -222,7 +222,7 @@ fileprivate struct _MsgPackKeyedEncodingContainer<K : CodingKey> : KeyedEncoding
 
     mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
         let dictionary = NSMutableDictionary()
-        self.container[encoder.box(key.stringValue)] = dictionary
+        try! self.container[encoder.box(key.stringValue)] = dictionary
 
         self.codingPath.append(key)
         defer {
@@ -236,7 +236,7 @@ fileprivate struct _MsgPackKeyedEncodingContainer<K : CodingKey> : KeyedEncoding
 
     mutating func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer {
         let array = NSMutableArray()
-        self.container[encoder.box(key.stringValue)] = array
+        try! self.container[encoder.box(key.stringValue)] = array
 
         self.codingPath.append(key)
         defer {
@@ -321,7 +321,7 @@ fileprivate struct _MsgPackUnkeyedEncodingContainer : UnkeyedEncodingContainer {
     }
 
     mutating func encode(_ value: String) throws {
-       self.container.add(self.encoder.box(value))
+       try self.container.add(self.encoder.box(value))
     }
 
     mutating func encode<T>(_ value: T) throws where T : Encodable {
@@ -443,7 +443,7 @@ extension _MsgPackEncdoer : SingleValueEncodingContainer {
 
     public func encode(_ value: String) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value) as NSArray)
     }
 
     public func encode<T>(_ value: T) throws where T : Encodable {
@@ -527,26 +527,31 @@ extension _MsgPackEncdoer {
         return [0xcb, UInt8(bitPattern >> 56 & 0xff), UInt8(bitPattern >> 48 & 0xff), UInt8(bitPattern >> 40 & 0xff), UInt8(bitPattern >> 32 & 0xff), UInt8(bitPattern >> 24 & 0xff), UInt8(bitPattern >> 16 & 0xff), UInt8(bitPattern >> 8 & 0xff), UInt8(bitPattern & 0xff)]
     }
 
-    fileprivate func box(_ value: String) -> [UInt8] {
+    fileprivate func box(_ value: String) throws -> [UInt8] {
         var container : [UInt8] = []
         let count = value.utf8.count
 
-        if count < 32 {
+        switch count {
+        case 0x00...0x1f:
             container += [UInt8(0b10100000 | count)]
             let utf8 = value.utf8.map() { $0 }
             container += utf8
-        } else if count < 256 {
+        case 0x20...0xff:
             container += [0xd9, UInt8(count)]
             let utf8 = value.utf8.map() { $0 }
             container += utf8
-        } else if count < 65536 {
+        case 0x100...0xffff:
             container += [0xda, UInt8(count >> 8 & 0xff), UInt8(count & 0xff)]
             let utf8 = value.utf8.map() { $0 }
             container += utf8
-        } else if count < 4294967296 {
+        case 0x10000...0xffff_ffff:
             container += [0xda, UInt8(count >> 24 & 0xff), UInt8(count >> 16 & 0xff), UInt8(count >> 8 & 0xff), UInt8(count & 0xff)]
             let utf8 = value.utf8.map() { $0 }
             container += utf8
+        default:
+            throw EncodingError.invalidValue(value,
+                                             EncodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Length Error"))
         }
 
         return container
@@ -556,14 +561,16 @@ extension _MsgPackEncdoer {
         var data = Data()
         var count = value.count
         switch count {
-        case (2 << 7) - 1:
+        case 0x00...0xff:
             data += [0xc4, UInt8(count)]
-        case (2 << 15) - 1:
+        case 0x100...0xffff:
             data += [0xc5, UInt8(count >> 8), UInt8(count & 0xff)]
-        case (2 << 31) - 1:
-            data += [0xc6, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
+        case 0x10000...0xffff_ffff:
+            data += [0xc6, UInt8(truncatingIfNeeded: count >> 24), UInt8(truncatingIfNeeded: count >> 16), UInt8(truncatingIfNeeded: count >> 8), UInt8(truncatingIfNeeded: count)]
         default:
-            fatalError()
+            throw EncodingError.invalidValue(value,
+                                             EncodingError.Context(codingPath: self.codingPath,
+                                                                    debugDescription: "Length Error"))
         }
 
         data += value
@@ -578,14 +585,16 @@ extension _MsgPackEncdoer {
         var data : [UInt8] = []
         let count = value.count
         switch count {
-        case (2 << 7) - 1:
+        case 0x00...0xff:
             data += [0xc4, UInt8(count)]
-        case (2 << 15) - 1:
+        case 0x100...0xffff:
             data += [0xc5, UInt8(count >> 8), UInt8(count & 0xff)]
-        case (2 << 31) - 1:
+        case 0x10000...0xffff_ffff:
             data += [0xc6, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
         default:
-            fatalError()
+            throw EncodingError.invalidValue(value,
+                                             EncodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Length Error"))
         }
 
         data += value
@@ -599,7 +608,16 @@ extension _MsgPackEncdoer {
         return [0xd6, 0xff] + self.box(seconds)
     }
 
-    fileprivate func box<T : Encodable>(_ value : T) throws -> NSObject? {
+    fileprivate func box<T : Encodable>(_ value : T) throws -> NSObject {
+        return try box_(value) ?? NSDictionary()
+    }
+
+    fileprivate func box_<T : Encodable>(_ value : T) throws -> NSObject? {
+        if T.self == Data.self || T.self == NSData.self {
+            let result : [UInt8] = try self.box((value as! Data))
+            return result as NSObject
+        }
+
         let depth = self.storage.count
         try value.encode(to: self)
         guard self.storage.count > depth else {
