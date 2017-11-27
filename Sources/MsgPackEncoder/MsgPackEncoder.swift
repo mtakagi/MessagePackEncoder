@@ -401,72 +401,86 @@ extension _MsgPackEncdoer : SingleValueEncodingContainer {
 
     public func encode(_ value: Bool) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: Int) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: Int8) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: Int16) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: Int32) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: Int64) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: UInt) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: UInt8) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: UInt16) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: UInt32) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: UInt64) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: Float) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: Double) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode(_ value: String) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value))
+        let result = try self.box(value)
+        self.storage.push(container: result as NSObject)
     }
 
     public func encode<T>(_ value: T) throws where T : Encodable {

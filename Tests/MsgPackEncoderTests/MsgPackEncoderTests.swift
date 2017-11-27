@@ -40,7 +40,37 @@ class MsgPackEncoderTests: XCTestCase {
         try! result.write(to: URL(fileURLWithPath: "/Users/mtakagi/Desktop/fuck.msg"))
     }
 
-    
+    func testEncodeNil() {
+        let value : Int? = nil
+        let encoder = MessagePackEncoder()
+        let result = try! encoder.encode(value)
+
+        XCTAssertEqual(result, Data([0xc0]))
+    }
+
+    func testEncodeTrue() {
+        let encoder = MessagePackEncoder()
+        let result = try! encoder.encode(true)
+
+        XCTAssertEqual(result, Data([0xc3]))
+    }
+
+    func testEncodeFalse() {
+        let encoder = MessagePackEncoder()
+        let result = try! encoder.encode(false)
+
+        XCTAssertEqual(result, Data([0xc2]))
+    }
+
+    func testEncodePositiveFixInt() {
+        let encoder = MessagePackEncoder()
+
+        for i in 0x00...0x0f {
+            let result = try! encoder.encode(i)
+            XCTAssertEqual(result, Data([UInt8(i)]))
+        }
+    }
+
     static var allTests = [
         ("testExample", testExample),
     ]
