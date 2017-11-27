@@ -7,46 +7,69 @@ open class MessagePackEncoder {
     public init() {}
 
     open func encode<T : Encodable>(_ value : T) throws -> Data {
-        let encoder = _MsgPackEncdoer()
-        var data : Data = Data()
-
         do {
+            let encoder = _MsgPackEncdoer()
             let topLevel = try encoder.box(value)
+            let data = convertToData(topLevel)
 
-            if let dict = topLevel as? NSDictionary {
-                let count = dict.count
-                if count <= 15 {
-                    let header = UInt8(0b10000000 | count)
-                    data.append(header)
-                } else if count <= (2 << 15) - 1 {
-                    let header = [0xde, UInt8(count >> 8), UInt8(count & 0xff)]
-                    data.append(contentsOf: header)
-                } else if count <= (2 << 31) - 1 {
-                    let header = [0xdf, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
-                    data.append(contentsOf: header)
-                }
-                for (key, value) in dict {
-                    data.append(contentsOf: key as! [UInt8])
-                    data.append(contentsOf: value as! [UInt8])
-                }
-            } else if let array = topLevel as? NSArray {
-                let count = array.count
-                if count <= 15 {
-                    let header = UInt8(0b10010000 | count)
-                    data.append(header)
-                } else if count <= (2 << 15) - 1 {
-                    let header = [0xdc, UInt8(count >> 8), UInt8(count & 0xff)]
-                    data.append(contentsOf: header)
-                } else if count <= (2 << 31) - 1 {
-                    let header = [0xdd, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
-                    data.append(contentsOf: header)
-                }
-                for value in array {
-                    data.append(contentsOf: value as! [UInt8])
-                }
-            }
+            return data
         } catch let e {
             throw e
+        }
+    }
+
+    private func convertToData(_ topLevel : Any) -> Data {
+        var data = Data()
+
+        if let dict = topLevel as? NSDictionary {
+            let count = dict.count
+            if count <= 15 {
+                let header = UInt8(0b10000000 | count)
+                data.append(header)
+            } else if count <= (2 << 15) - 1 {
+                let header = [0xde, UInt8(count >> 8), UInt8(count & 0xff)]
+                data.append(contentsOf: header)
+            } else if count <= (2 << 31) - 1 {
+                let header = [0xdf, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
+                data.append(contentsOf: header)
+            }
+            for (key, value) in dict {
+                if let key = key as? Data {
+                    data.append(contentsOf: key)
+                } else {
+                    data.append(contentsOf: convertToData(key))
+                }
+                if let value = value as? Data {
+                    data.append(contentsOf: value)
+                } else {
+                    data.append(contentsOf: convertToData(value))
+                }
+            }
+        } else if let array = topLevel as? NSArray {
+            let count = array.count
+            if count <= 15 {
+                let header = UInt8(0b10010000 | count)
+                data.append(header)
+            } else if count <= (2 << 15) - 1 {
+                let header = [0xdc, UInt8(count >> 8), UInt8(count & 0xff)]
+                data.append(contentsOf: header)
+            } else if count <= (2 << 31) - 1 {
+                let header = [0xdd, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
+                data.append(contentsOf: header)
+            }
+            for value in array {
+                if let value = value as? Data {
+                    data.append(contentsOf: value)
+                } else {
+                    data.append(contentsOf: convertToData(value))
+                }
+            }
+        } else {
+            guard let container = topLevel as? Data else {
+                fatalError()
+            }
+
+            data = container
         }
 
         return data
@@ -373,161 +396,174 @@ extension _MsgPackEncdoer : SingleValueEncodingContainer {
 
     public func encodeNil() throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: [0xc0] as NSArray)
+        self.storage.push(container: Data([0xc0]) as NSObject)
     }
 
     public func encode(_ value: Bool) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: Int) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: Int8) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: Int16) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: Int32) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: Int64) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: UInt) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: UInt8) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: UInt16) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: UInt32) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: UInt64) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: Float) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: Double) throws {
         assertCanEncodeNewValue()
-        self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode(_ value: String) throws {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value) as NSArray)
+        try self.storage.push(container: self.box(value))
     }
 
     public func encode<T>(_ value: T) throws where T : Encodable {
         assertCanEncodeNewValue()
-        try self.storage.push(container: self.box(value) as! NSArray)
+        try self.storage.push(container: self.box(value))
     }
 }
 
 extension _MsgPackEncdoer {
-    fileprivate func box(_ value : Bool) -> [UInt8] { return value ? [0xc3] : [0xc2] }
-    fileprivate func box(_ value: UInt) -> [UInt8] { return MemoryLayout<UInt>.size == 4 ? box((UInt32(value))) : box((UInt64(value)))}
-    fileprivate func box(_ value : UInt8) -> [UInt8] {
+    fileprivate func box(_ value : Bool) -> Data { return value ? Data([0xc3]) : Data([0xc2]) }
+    fileprivate func box(_ value: UInt) -> Data { return MemoryLayout<UInt>.size == 4 ? box((UInt32(value))) : box((UInt64(value)))}
+    fileprivate func box(_ value : UInt8) -> Data {
         switch value {
         case 0x00...0x7f:
-            return [value]
+            return Data([value])
         default:
-            return [0xcc, value]
+            return Data([0xcc, value])
         }
     }
-    fileprivate func box(_ value : UInt16) -> [UInt8] {
+    fileprivate func box(_ value : UInt16) -> Data {
         if value <= UInt8.max {
             return self.box(UInt8(value))
         }
-        return [0xcd, UInt8(value >> 8 & 0xff), UInt8(value & 0xff)]
+        return Data([0xcd, UInt8(value >> 8 & 0xff), UInt8(value & 0xff)])
     }
-    fileprivate func box(_ value : UInt32) -> [UInt8] {
+    fileprivate func box(_ value : UInt32) -> Data {
         if value <= UInt16.max {
             return self.box(UInt16(value))
         }
-        return [0xce, UInt8(value >> 24 & 0xff), UInt8(value >> 16 & 0xff), UInt8(value >> 8 & 0xff), UInt8(value & 0xff)]
+        return Data([0xce, UInt8(value >> 24 & 0xff), UInt8(value >> 16 & 0xff), UInt8(value >> 8 & 0xff), UInt8(value & 0xff)])
     }
-    fileprivate func box(_ value : UInt64) -> [UInt8] {
+    fileprivate func box(_ value : UInt64) -> Data {
         if value <= UInt32.max {
             return self.box(UInt32(value))
         }
-        return [0xcf, UInt8(value >> 56 & 0xff), UInt8(value >> 48 & 0xff), UInt8(value >> 40 & 0xff), UInt8(value >> 32 & 0xff), UInt8(value >> 24 & 0xff), UInt8(value >> 16 & 0xff), UInt8(value >> 8 & 0xff), UInt8(value & 0xff)]
+
+        return Data([0xcf,
+                     UInt8(truncatingIfNeeded: value >> 56), UInt8(truncatingIfNeeded: value >> 48),
+                     UInt8(truncatingIfNeeded: value >> 40), UInt8(truncatingIfNeeded: value >> 32),
+                     UInt8(truncatingIfNeeded: value >> 24), UInt8(truncatingIfNeeded: value >> 16),
+                     UInt8(truncatingIfNeeded: value >> 8), UInt8(truncatingIfNeeded: value)])
     }
 
-    fileprivate func box(_ value: Int) -> [UInt8] {
+    fileprivate func box(_ value: Int) -> Data {
         return MemoryLayout<Int>.size == 4 ? box((Int32(value))) : box((Int64(value)))
     }
-    fileprivate func box(_ value : Int8) -> [UInt8] {
+    fileprivate func box(_ value : Int8) -> Data {
         let value = UInt8(value)
         switch value {
         case 0x00...0x7f:
             fallthrough
         case 0xe0...0xff:
-             return [value]
+             return Data([value])
         default:
-            return [0xd0, value]
+            return Data([0xd0, value])
         }
     }
-    fileprivate func box(_ value : Int16) -> [UInt8] {
+    fileprivate func box(_ value : Int16) -> Data {
         if Int8.min <= value && value <= Int8.max {
             return self.box(Int8(value))
         }
-        return [0xd1, UInt8(value >> 8 & 0xff), UInt8(value & 0xff)]
+        return Data([0xd1, UInt8(value >> 8 & 0xff), UInt8(value & 0xff)])
     }
-    fileprivate func box(_ value : Int32) -> [UInt8] {
+    fileprivate func box(_ value : Int32) -> Data {
         if Int16.min <= value && value <= Int16.max {
             return self.box(Int16(value))
         }
-        return [0xd2, UInt8(value >> 24 & 0xff), UInt8(value >> 16 & 0xff), UInt8(value >> 8 & 0xff), UInt8(value & 0xff)]
+        return Data([0xd2, UInt8(value >> 24 & 0xff), UInt8(value >> 16 & 0xff), UInt8(value >> 8 & 0xff), UInt8(value & 0xff)])
     }
-    fileprivate func box(_ value : Int64) -> [UInt8] {
+    fileprivate func box(_ value : Int64) -> Data {
         if Int32.min <= value && value <= Int32.max {
             return self.box(Int32(value))
         }
-        return [0xd3, UInt8(value >> 56 & 0xff), UInt8(value >> 48 & 0xff), UInt8(value >> 40 & 0xff), UInt8(value >> 32 & 0xff), UInt8(value >> 24 & 0xff), UInt8(value >> 16 & 0xff), UInt8(value >> 8 & 0xff), UInt8(value & 0xff)]
+        return Data([0xd3,
+                     UInt8(truncatingIfNeeded: value >> 56), UInt8(truncatingIfNeeded: value >> 48),
+                     UInt8(truncatingIfNeeded: value >> 40), UInt8(truncatingIfNeeded: value >> 32),
+                     UInt8(truncatingIfNeeded: value >> 24), UInt8(truncatingIfNeeded: value >> 16),
+                     UInt8(truncatingIfNeeded: value >> 8), UInt8(truncatingIfNeeded: value)])
     }
 
-    fileprivate func box(_ value : Float) -> [UInt8] {
+    fileprivate func box(_ value : Float) -> Data {
         let bitPattern = value.bitPattern
 
-        return [0xca, UInt8(bitPattern >> 24 & 0xff), UInt8(bitPattern >> 16 & 0xff), UInt8(bitPattern >> 8 & 0xff), UInt8(bitPattern & 0xff)]
+        return Data([0xca, UInt8(bitPattern >> 24 & 0xff), UInt8(bitPattern >> 16 & 0xff), UInt8(bitPattern >> 8 & 0xff), UInt8(bitPattern & 0xff)])
     }
 
-    fileprivate func box(_ value : Double) -> [UInt8] {
+    fileprivate func box(_ value : Double) -> Data {
         let bitPattern = value.bitPattern
 
-        return [0xcb, UInt8(bitPattern >> 56 & 0xff), UInt8(bitPattern >> 48 & 0xff), UInt8(bitPattern >> 40 & 0xff), UInt8(bitPattern >> 32 & 0xff), UInt8(bitPattern >> 24 & 0xff), UInt8(bitPattern >> 16 & 0xff), UInt8(bitPattern >> 8 & 0xff), UInt8(bitPattern & 0xff)]
+        return Data([0xcb,
+                     UInt8(truncatingIfNeeded: bitPattern >> 56), UInt8(truncatingIfNeeded: bitPattern >> 48),
+                     UInt8(truncatingIfNeeded: bitPattern >> 40), UInt8(truncatingIfNeeded: bitPattern >> 32),
+                     UInt8(truncatingIfNeeded: bitPattern >> 24), UInt8(truncatingIfNeeded: bitPattern >> 16),
+                     UInt8(truncatingIfNeeded: bitPattern >> 8), UInt8(truncatingIfNeeded: bitPattern)])
     }
 
-    fileprivate func box(_ value: String) throws -> [UInt8] {
+    fileprivate func box(_ value: String) throws -> Data {
         var container : [UInt8] = []
         let count = value.utf8.count
 
@@ -554,12 +590,12 @@ extension _MsgPackEncdoer {
                                                                    debugDescription: "Length Error"))
         }
 
-        return container
+        return Data(container)
     }
 
-    fileprivate func box(_ value : Data) throws -> [UInt8] {
+    fileprivate func box(_ value : Data) throws -> Data {
         var data = Data()
-        var count = value.count
+        let count = value.count
         switch count {
         case 0x00...0xff:
             data += [0xc4, UInt8(count)]
@@ -574,14 +610,11 @@ extension _MsgPackEncdoer {
         }
 
         data += value
-        count = data.count
-        var array = [UInt8](repeating: 0, count: count)
-        data.copyBytes(to: &array, count: count)
 
-        return array
+        return data
     }
 
-    fileprivate func box(_ value : [UInt8]) throws -> [UInt8] {
+    fileprivate func box(_ value : [UInt8]) throws -> Data {
         var data : [UInt8] = []
         let count = value.count
         switch count {
@@ -599,13 +632,13 @@ extension _MsgPackEncdoer {
 
         data += value
 
-        return data
+        return Data(data)
     }
 
-    fileprivate func box(_ value : Date) throws -> [UInt8] {
+    fileprivate func box(_ value : Date) throws -> Data {
         let seconds = UInt32(value.timeIntervalSinceNow)
 
-        return [0xd6, 0xff] + self.box(seconds)
+        return Data([0xd6, 0xff] + self.box(seconds))
     }
 
     fileprivate func box<T : Encodable>(_ value : T) throws -> NSObject {
@@ -614,7 +647,10 @@ extension _MsgPackEncdoer {
 
     fileprivate func box_<T : Encodable>(_ value : T) throws -> NSObject? {
         if T.self == Data.self || T.self == NSData.self {
-            let result : [UInt8] = try self.box((value as! Data))
+            let result : Data = try self.box((value as! Data))
+            return result as NSObject
+        } else if T.self == Date.self || T.self == NSDate.self {
+            let result : Data = try self.box((value as! Date))
             return result as NSObject
         }
 

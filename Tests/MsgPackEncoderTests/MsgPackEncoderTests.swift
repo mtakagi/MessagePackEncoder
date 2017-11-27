@@ -69,14 +69,13 @@ class MsgPackEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, result)
     }
 
-    // FIXME: More efficiently
-//    func testBinary32Max() {
-//        let data = Data(count: 0xffff_ffff)
-//        let result = Data(bytes: [0xc6, 0xff, 0xff, 0xff, 0xff]) + data
-//        let encoder = MessagePackEncoder()
-//        let encoded = try! encoder.encode(data)
-//        XCTAssertEqual(encoded, result)
-//    }
+    func testBinary32Max() {
+        let data = Data(count: 0xffff_ffff)
+        let result = Data(bytes: [0xc6, 0xff, 0xff, 0xff, 0xff]) + data
+        let encoder = MessagePackEncoder()
+        let encoded = try! encoder.encode(data)
+        XCTAssertEqual(encoded, result)
+    }
 
     func testBinaryOutOfRange() {
         do {
