@@ -71,6 +71,17 @@ class MsgPackEncoderTests: XCTestCase {
         }
     }
 
+    func testEncodeNegativeFixInt() {
+        let encoder = MessagePackEncoder()
+        let start = -32
+        let end = -1
+
+        for i in start...end {
+            let result = try! encoder.encode(i)
+            XCTAssertEqual(result, Data([UInt8(truncatingIfNeeded: i)]))
+        }
+    }
+
     static var allTests = [
         ("testExample", testExample),
     ]

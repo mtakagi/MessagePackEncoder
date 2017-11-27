@@ -528,7 +528,7 @@ extension _MsgPackEncdoer {
         return MemoryLayout<Int>.size == 4 ? box((Int32(value))) : box((Int64(value)))
     }
     fileprivate func box(_ value : Int8) -> Data {
-        let value = UInt8(value)
+        let value = UInt8(truncatingIfNeeded: value)
         switch value {
         case 0x00...0x7f:
             fallthrough
