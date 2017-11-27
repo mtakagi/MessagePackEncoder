@@ -595,7 +595,7 @@ extension _MsgPackEncdoer {
             let utf8 = value.utf8.map() { $0 }
             container += utf8
         case 0x10000...0xffff_ffff:
-            container += [0xda, UInt8(count >> 24 & 0xff), UInt8(count >> 16 & 0xff), UInt8(count >> 8 & 0xff), UInt8(count & 0xff)]
+            container += [0xdb, UInt8(count >> 24 & 0xff), UInt8(count >> 16 & 0xff), UInt8(count >> 8 & 0xff), UInt8(count & 0xff)]
             let utf8 = value.utf8.map() { $0 }
             container += utf8
         default:
