@@ -1,5 +1,8 @@
 # MsgPackEncoder
 
+
+[![Build Status](https://travis-ci.org/mtakagi/lzstring-swift.svg?branch=master)](https://travis-ci.org/mtakagi/MessagePackEncoder)
+[![codecov](https://codecov.io/gh/mtakagi/lzstring-swift/branch/master/graph/badge.svg)](https://codecov.io/gh/mtakagi/MessagePackEncoder)
 [![Join the chat at https://gitter.im/mtakagi/MessagePackEncoder](https://badges.gitter.im/mtakagi/MessagePackEncoder.svg)](https://gitter.im/mtakagi/MessagePackEncoder?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-A description of this package.
+This project is experimental MessagePack Encoder like a Swift 4's `Codable` conform ` (JSON|PropertyList)Encoder` class
