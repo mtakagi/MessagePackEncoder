@@ -63,6 +63,11 @@ class MsgPackEncoderTests: XCTestCase {
     }
 
     static var allTests = [
+        ("testEmptyStruct", testEmptyStruct),
+        ("testEmptyArray", testEmptyArray),
         ("testExample", testExample),
+        ("testEncodeNil", testEncodeNil),
+        ("testEncodeTrue", testEncodeTrue),
+        ("testEncodeFalse", testEncodeFalse)
     ]
 }
