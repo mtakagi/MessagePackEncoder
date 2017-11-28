@@ -29,17 +29,6 @@ class MsgPackEncoderTests: XCTestCase {
         XCTAssertEqual(data, result)
     }
 
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        let fuck = Sample(foo: 10, bar: "fuck", bazz: 10000)
-        let encoder = MessagePackEncoder()
-        let result = try! encoder.encode(fuck)
-        print(result)
-        try! result.write(to: URL(fileURLWithPath: "/Users/mtakagi/Desktop/fuck.msg"))
-    }
-
     func testEncodeNil() {
         let value : Int? = nil
         let encoder = MessagePackEncoder()
@@ -65,7 +54,6 @@ class MsgPackEncoderTests: XCTestCase {
     static var allTests = [
         ("testEmptyStruct", testEmptyStruct),
         ("testEmptyArray", testEmptyArray),
-        ("testExample", testExample),
         ("testEncodeNil", testEncodeNil),
         ("testEncodeTrue", testEncodeTrue),
         ("testEncodeFalse", testEncodeFalse)
