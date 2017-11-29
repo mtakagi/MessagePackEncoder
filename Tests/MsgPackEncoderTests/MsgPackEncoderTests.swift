@@ -51,11 +51,29 @@ class MsgPackEncoderTests: XCTestCase {
         XCTAssertEqual(result, Data([0xc2]))
     }
 
+    func testEncodeTimestamp32Min() {
+        let encoder = MessagePackEncoder()
+        let date = Date(timeIntervalSince1970: 0.0)
+        let result = try! encoder.encode(date)
+
+        XCTAssertEqual(result, Data([0xd6, 0xff, 0x00, 0x00, 0x00, 0x00]))
+    }
+
+    func testEncodeTimestamp32Max() {
+        let encoder = MessagePackEncoder()
+        let date = Date(timeIntervalSince1970: Double(UInt32.max))
+        let result = try! encoder.encode(date)
+
+        XCTAssertEqual(result, Data([0xd6, 0xff, 0xff, 0xff, 0xff, 0xff]))
+    }
+
     static var allTests = [
         ("testEmptyStruct", testEmptyStruct),
         ("testEmptyArray", testEmptyArray),
         ("testEncodeNil", testEncodeNil),
         ("testEncodeTrue", testEncodeTrue),
-        ("testEncodeFalse", testEncodeFalse)
+        ("testEncodeFalse", testEncodeFalse),
+        ("testEncodeTimestamp32Min", testEncodeTimestamp32Min),
+        ("testEncodeTimestamp32Max", testEncodeTimestamp32Max),
     ]
 }

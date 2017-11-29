@@ -650,9 +650,13 @@ extension _MsgPackEncdoer {
     }
 
     fileprivate func box(_ value : Date) throws -> Data {
-        let seconds = UInt32(value.timeIntervalSinceNow)
+        guard let seconds = UInt32(exactly: value.timeIntervalSince1970) else {
+            return Data([0xc0])
+        }
 
-        return Data([0xd6, 0xff] + self.box(seconds))
+        return Data([0xd6, 0xff,
+                     UInt8(truncatingIfNeeded: seconds >> 24), UInt8(truncatingIfNeeded: seconds >> 16),
+                     UInt8(truncatingIfNeeded: seconds >> 8), UInt8(truncatingIfNeeded: seconds)])
     }
 
     fileprivate func box<T : Encodable>(_ value : T) throws -> NSObject {
