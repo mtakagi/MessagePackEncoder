@@ -41,4 +41,9 @@ class FloatTests : XCTestCase {
                                          UInt8(truncatingIfNeeded: bitPattern >> 8), UInt8(truncatingIfNeeded: bitPattern)]))
         }
     }
+
+    static var allTests = [
+        ("testEncodeFloat", testEncodeFloat),
+        ("testEncodeDouble", testEncodeDouble),
+    ]
 }

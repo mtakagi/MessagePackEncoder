@@ -27,10 +27,12 @@ open class MessagePackEncoder {
                 let header = UInt8(0b10000000 | count)
                 data.append(header)
             } else if count <= (2 << 15) - 1 {
-                let header = [0xde, UInt8(count >> 8), UInt8(count & 0xff)]
+                let header = [0xde, UInt8(truncatingIfNeeded: count >> 8), UInt8(truncatingIfNeeded: count)]
                 data.append(contentsOf: header)
             } else if count <= (2 << 31) - 1 {
-                let header = [0xdf, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
+                let header = [0xdf,
+                              UInt8(truncatingIfNeeded: count >> 24), UInt8(truncatingIfNeeded: count >> 16),
+                              UInt8(truncatingIfNeeded: count >> 8), UInt8(truncatingIfNeeded: count)]
                 data.append(contentsOf: header)
             }
             for (key, value) in dict {
@@ -51,10 +53,12 @@ open class MessagePackEncoder {
                 let header = UInt8(0b10010000 | count)
                 data.append(header)
             } else if count <= (2 << 15) - 1 {
-                let header = [0xdc, UInt8(count >> 8), UInt8(count & 0xff)]
+                let header = [0xdc, UInt8(truncatingIfNeeded: count >> 8), UInt8(truncatingIfNeeded: count)]
                 data.append(contentsOf: header)
             } else if count <= (2 << 31) - 1 {
-                let header = [0xdd, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
+                let header = [0xdd,
+                              UInt8(truncatingIfNeeded: count >> 24), UInt8(truncatingIfNeeded: count >> 16),
+                              UInt8(truncatingIfNeeded: count >> 8), UInt8(truncatingIfNeeded: count)]
                 data.append(contentsOf: header)
             }
             for value in array {

@@ -1,7 +1,7 @@
 import XCTest
 @testable import MsgPackEncoder
 
-struct Empty : Codable {
+public struct Empty : Codable {
 }
 
 struct Sample : Codable {
@@ -19,16 +19,7 @@ class MsgPackEncoderTests: XCTestCase {
 
         XCTAssertEqual(data, result)
     }
-
-    func testEmptyArray() {
-        let empty : [Empty] = []
-        let encoder = MessagePackEncoder()
-        let result = try! encoder.encode(empty)
-        let data = Data(bytes: [0x90])
-
-        XCTAssertEqual(data, result)
-    }
-
+    
     func testEncodeNil() {
         let value : Int? = nil
         let encoder = MessagePackEncoder()
@@ -69,7 +60,6 @@ class MsgPackEncoderTests: XCTestCase {
 
     static var allTests = [
         ("testEmptyStruct", testEmptyStruct),
-        ("testEmptyArray", testEmptyArray),
         ("testEncodeNil", testEncodeNil),
         ("testEncodeTrue", testEncodeTrue),
         ("testEncodeFalse", testEncodeFalse),
