@@ -25,6 +25,7 @@
 		653B77891FCC473A005BE329 /* StringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653B77881FCC473A005BE329 /* StringTests.swift */; };
 		653B778B1FCCEDB2005BE329 /* IntTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653B778A1FCCEDB2005BE329 /* IntTests.swift */; };
 		653B778D1FD04FEF005BE329 /* FloatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653B778C1FD04FEF005BE329 /* FloatTests.swift */; };
+		653B778F1FD13BAA005BE329 /* ArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653B778E1FD13BAA005BE329 /* ArrayTests.swift */; };
 		OBJ_21 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
 		OBJ_27 /* MsgPackEncoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_12 /* MsgPackEncoderTests.swift */; };
 		OBJ_29 /* MsgPackEncoder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "MsgPackEncoder::MsgPackEncoder::Product" /* MsgPackEncoder.framework */; };
@@ -65,6 +66,7 @@
 		653B77881FCC473A005BE329 /* StringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringTests.swift; sourceTree = "<group>"; };
 		653B778A1FCCEDB2005BE329 /* IntTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntTests.swift; sourceTree = "<group>"; };
 		653B778C1FD04FEF005BE329 /* FloatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatTests.swift; sourceTree = "<group>"; };
+		653B778E1FD13BAA005BE329 /* ArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayTests.swift; sourceTree = "<group>"; };
 		"MsgPackEncoder::MsgPackEncoder::Product" /* MsgPackEncoder.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MsgPackEncoder.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"MsgPackEncoder::MsgPackEncoderTests::Product" /* MsgPackEncoderTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = MsgPackEncoderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		OBJ_12 /* MsgPackEncoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgPackEncoderTests.swift; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 				653B77881FCC473A005BE329 /* StringTests.swift */,
 				653B778A1FCCEDB2005BE329 /* IntTests.swift */,
 				653B778C1FD04FEF005BE329 /* FloatTests.swift */,
+				653B778E1FD13BAA005BE329 /* ArrayTests.swift */,
 			);
 			name = MsgPackEncoderTests;
 			path = Tests/MsgPackEncoderTests;
@@ -257,6 +260,7 @@
 				653B778B1FCCEDB2005BE329 /* IntTests.swift in Sources */,
 				OBJ_27 /* MsgPackEncoderTests.swift in Sources */,
 				653B77891FCC473A005BE329 /* StringTests.swift in Sources */,
+				653B778F1FD13BAA005BE329 /* ArrayTests.swift in Sources */,
 				653B77871FCBF7DE005BE329 /* BinaryTests.swift in Sources */,
 				653B778D1FD04FEF005BE329 /* FloatTests.swift in Sources */,
 			);
