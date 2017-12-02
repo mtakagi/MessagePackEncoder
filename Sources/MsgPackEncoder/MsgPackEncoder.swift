@@ -236,9 +236,9 @@ fileprivate struct _MsgPackKeyedEncodingContainer<K : CodingKey> : KeyedEncoding
     }
 
     mutating func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
-        self.codingPath.append(key)
+        self.encoder.codingPath.append(key)
         defer {
-            self.codingPath.removeLast()
+            self.encoder.codingPath.removeLast()
         }
         try container[encoder.box(key.stringValue)] = encoder.box(value)
     }
