@@ -15,6 +15,15 @@ struct Nested : Codable {
     var sample : Sample
 }
 
+struct NestStruct : Codable {
+    struct Nest : Codable {
+        var nest : String
+    }
+
+    var nest : String
+    var nested : Nest
+}
+
 struct Unkeyed : Encodable {
     var empty : Empty?
     var bool : Bool
@@ -89,6 +98,14 @@ class MsgPackEncoderTests: XCTestCase {
         XCTAssertEqual(result, Data([0x82, 0xa6, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0xa6, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0xa6, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x83, 0xa3, 0x66, 0x6f, 0x6f, 0x7f, 0xa3, 0x62, 0x61, 0x72, 0xa6, 0x53, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0xa4, 0x62, 0x61, 0x7a, 0x7a, 0xce, 0xff, 0xff, 0xff, 0xff]))
     }
 
+    func testEncodeNestedStruct() {
+        let encoder = MessagePackEncoder()
+        let nested = NestStruct(nest: "Outer", nested: NestStruct.Nest(nest: "Inner"))
+        let result = try! encoder.encode(nested)
+
+        XCTAssertEqual(result, Data([0x82, 0xa4, 0x6e, 0x65, 0x73, 0x74, 0xa5, 0x4f, 0x75, 0x74, 0x65, 0x72, 0xa6, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x81, 0xa4, 0x6e, 0x65, 0x73, 0x74, 0xa5, 0x49, 0x6e, 0x6e, 0x65, 0x72]))
+    }
+
 
     func testEncodeUnkeyedStruct() {
         let encoder = MessagePackEncoder()
@@ -124,6 +141,7 @@ class MsgPackEncoderTests: XCTestCase {
     static var allTests = [
         ("testEncodeSample", testEncodeSample),
         ("testEncodeNested", testEncodeNested),
+        ("testEncodeNestedStruct", testEncodeNestedStruct),
         ("testEncodeUnkeyedStruct", testEncodeUnkeyedStruct),
         ("testEncodeKeyedStruct", testEncodeKeyedStruct),
         ("testEmptyStruct", testEmptyStruct),
