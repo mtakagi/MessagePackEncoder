@@ -3,3 +3,6 @@ coverage:
     gitter:
       default:
         url: secret:AgTq+bQguezuTzLPmVh6rvt0ccC+PSydiVEstH6zz2ZJrTwLP22uuO/LPEKzk15cFmNqXxcpLeXhxRAwmV57jcNvibDSBQG0p43S7Lf8aZOWABWSLMCTkhLjhj/lrZ17
+
+  ignore:
+    - "Tests/*"
