@@ -101,18 +101,9 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		6526CF401FC94EF2009BBEA5 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Resources;
-			path = Tests/Resources;
-			sourceTree = "<group>";
-		};
 		OBJ_10 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				6526CF401FC94EF2009BBEA5 /* Resources */,
 				OBJ_11 /* MsgPackEncoderTests */,
 			);
 			name = Tests;
