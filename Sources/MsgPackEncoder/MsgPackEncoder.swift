@@ -348,7 +348,11 @@ fileprivate struct _MsgPackUnkeyedEncodingContainer : UnkeyedEncodingContainer {
     }
 
     mutating func encode<T>(_ value: T) throws where T : Encodable {
-       try self.container.add(self.encoder.box(value))
+        self.encoder.codingPath.append(_MsgPackKey(index: self.count))
+        defer {
+            self.encoder.codingPath.removeLast()
+        }
+        try self.container.add(self.encoder.box(value))
     }
 
     mutating func encode(_ value: Bool) throws {
