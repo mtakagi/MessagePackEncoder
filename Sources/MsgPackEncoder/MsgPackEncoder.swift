@@ -2,13 +2,37 @@ import Foundation
 
 open class MessagePackEncoder {
 
+    public enum DateEncodingStrategy {
+        case secondsSince1970
+        case secondAndNanoSecondSince1970
+    }
+
+    public enum UInt8ArrayEncodingStrategy {
+        case binary
+        case array
+    }
+
+    open var dateEncodingStrategy : DateEncodingStrategy = .secondsSince1970
+    open var uint8ArrayEncodingStrategy : UInt8ArrayEncodingStrategy = .binary
     open var userInfo: [CodingUserInfoKey : Any] = [:]
+
+    fileprivate struct _Options {
+        let dateEncodingStrategy : DateEncodingStrategy
+        let uint8ArrayEncodingStrategy : UInt8ArrayEncodingStrategy
+        let userInfo : [CodingUserInfoKey : Any]
+    }
+
+    fileprivate var options : _Options {
+        return _Options(dateEncodingStrategy: dateEncodingStrategy,
+                        uint8ArrayEncodingStrategy: uint8ArrayEncodingStrategy,
+                        userInfo: userInfo)
+    }
 
     public init() {}
 
     open func encode<T : Encodable>(_ value : T) throws -> Data {
         do {
-            let encoder = _MsgPackEncdoer()
+            let encoder = _MsgPackEncdoer(options: self.options)
             let topLevel = try encoder.box(value)
             let data = convertToData(topLevel)
 
@@ -81,15 +105,18 @@ open class MessagePackEncoder {
 }
 
 fileprivate class _MsgPackEncdoer : Encoder {
+    fileprivate let options : MessagePackEncoder._Options
     fileprivate var storage : _MsgPackEncodingStorage
     public var codingPath: [CodingKey]
 
-    public var userInfo: [CodingUserInfoKey : Any]
+    public var userInfo: [CodingUserInfoKey : Any] {
+        return self.options.userInfo
+    }
 
-    init(codingPath: [CodingKey] = [], userInfo : [CodingUserInfoKey : Any] = [:]) {
+    init(options: MessagePackEncoder._Options, codingPath: [CodingKey] = []) {
+        self.options = options
         self.codingPath = codingPath
         self.storage = _MsgPackEncodingStorage()
-        self.userInfo = userInfo
     }
 
     fileprivate var canEncodeNewValue: Bool {
@@ -637,11 +664,13 @@ extension _MsgPackEncdoer {
         let count = value.count
         switch count {
         case 0x00...0xff:
-            data += [0xc4, UInt8(count)]
+            data += [0xc4, UInt8(truncatingIfNeeded: count)]
         case 0x100...0xffff:
-            data += [0xc5, UInt8(count >> 8), UInt8(count & 0xff)]
+            data += [0xc5, UInt8(truncatingIfNeeded: count >> 8), UInt8(truncatingIfNeeded: count & 0xff)]
         case 0x10000...0xffff_ffff:
-            data += [0xc6, UInt8(count >> 24), UInt8(count >> 16), UInt8(count >> 8), UInt8(count & 0xff)]
+            data += [0xc6,
+                     UInt8(truncatingIfNeeded: count >> 24), UInt8(truncatingIfNeeded: count >> 16),
+                     UInt8(truncatingIfNeeded: count >> 8), UInt8(truncatingIfNeeded: count)]
         default:
             throw EncodingError.invalidValue(value,
                                              EncodingError.Context(codingPath: self.codingPath,
@@ -674,6 +703,9 @@ extension _MsgPackEncdoer {
         } else if T.self == Date.self || T.self == NSDate.self {
             let result : Data = try self.box((value as! Date))
             return result as NSObject
+        } else if T.self == [UInt8].self && self.options.uint8ArrayEncodingStrategy == .binary {
+            let result : Data = try self.box(value as! [UInt8])
+            return result as NSObject
         }
 
         let depth = self.storage.count
@@ -697,7 +729,7 @@ fileprivate class _MsgPackReferencingEncoder : _MsgPackEncdoer {
     fileprivate init(referencing encoder : _MsgPackEncdoer, at index : Int, wrapping array : NSMutableArray) {
         self.encoder = encoder
         self.reference = .array(array, index)
-        super.init(codingPath: encoder.codingPath)
+        super.init(options: encoder.options, codingPath: encoder.codingPath)
 
         self.codingPath.append(_MsgPackKey(index: index))
     }
@@ -705,7 +737,7 @@ fileprivate class _MsgPackReferencingEncoder : _MsgPackEncdoer {
     fileprivate init(referencing encoder : _MsgPackEncdoer, at key : CodingKey, wrapping dictionary : OrderedDictionary<Any, Any>) {
         self.encoder = encoder
         self.reference = .dictionary(dictionary, key.stringValue)
-        super.init(codingPath: encoder.codingPath)
+        super.init(options: encoder.options, codingPath: encoder.codingPath)
 
         self.codingPath.append(key)
     }
