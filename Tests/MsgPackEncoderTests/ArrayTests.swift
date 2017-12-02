@@ -8,7 +8,7 @@
 import XCTest
 @testable import MsgPackEncoder
 
-fileprivate enum UIntType {
+internal enum UIntType {
     case uint(UInt)
     case uint8(UInt8)
     case uint16(UInt16)
@@ -33,7 +33,7 @@ extension UIntType : Encodable {
     }
 }
 
-fileprivate enum IntType {
+internal enum IntType {
     case int(Int)
     case int8(Int8)
     case int16(Int16)

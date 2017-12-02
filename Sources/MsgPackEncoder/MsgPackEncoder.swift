@@ -21,7 +21,7 @@ open class MessagePackEncoder {
     private func convertToData(_ topLevel : Any) -> Data {
         var data = Data()
 
-        if let dict = topLevel as? NSDictionary {
+        if let dict = topLevel as? OrderedDictionary<Any, Any> {
             let count = dict.count
             if count <= 15 {
                 let header = UInt8(0b10000000 | count)
@@ -97,11 +97,11 @@ fileprivate class _MsgPackEncdoer : Encoder {
     }
 
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-        let topContainer : NSMutableDictionary
+        let topContainer : OrderedDictionary<Any, Any>
         if self.canEncodeNewValue {
             topContainer = self.storage.pushKeyedContainer()
         } else {
-            guard let container = self.storage.containers.last as? NSMutableDictionary else {
+            guard let container = self.storage.containers.last as? OrderedDictionary<Any, Any> else {
                 preconditionFailure("Attempt to push new keyed encoding container when already previously encoded at this path.")
             }
             topContainer = container
@@ -140,8 +140,8 @@ fileprivate struct _MsgPackEncodingStorage {
         return self.containers.count
     }
 
-    fileprivate mutating func pushKeyedContainer() -> NSMutableDictionary {
-        let dictionary = NSMutableDictionary()
+    fileprivate mutating func pushKeyedContainer() -> OrderedDictionary<Any, Any> {
+        let dictionary = OrderedDictionary<Any, Any>()
         self.containers.append(dictionary)
         return dictionary
     }
@@ -162,18 +162,14 @@ fileprivate struct _MsgPackEncodingStorage {
     }
 }
 
-
-
-fileprivate typealias KeyedContainer = (key: [UInt8], value : [UInt8])
-
 fileprivate struct _MsgPackKeyedEncodingContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
     typealias Key = K
     private let encoder : _MsgPackEncdoer
-    private let container : NSMutableDictionary
+    private let container : OrderedDictionary<Any, Any>
     private(set) public var codingPath: [CodingKey]
 
 
-    fileprivate init(referencing encoder: _MsgPackEncdoer, codingPath: [CodingKey], wrapping container : NSMutableDictionary) {
+    fileprivate init(referencing encoder: _MsgPackEncdoer, codingPath: [CodingKey], wrapping container : OrderedDictionary<Any, Any>) {
         self.encoder = encoder
         self.codingPath = codingPath
         self.container = container
@@ -248,7 +244,7 @@ fileprivate struct _MsgPackKeyedEncodingContainer<K : CodingKey> : KeyedEncoding
     }
 
     mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        let dictionary = NSMutableDictionary()
+        let dictionary = OrderedDictionary<Any, Any>()
         try! self.container[encoder.box(key.stringValue)] = dictionary
 
         self.codingPath.append(key)
@@ -369,7 +365,7 @@ fileprivate struct _MsgPackUnkeyedEncodingContainer : UnkeyedEncodingContainer {
             self.codingPath.removeLast()
         }
 
-        let dictionary =  NSMutableDictionary()
+        let dictionary =  OrderedDictionary<Any, Any>()
         let container = _MsgPackKeyedEncodingContainer<NestedKey>(referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
 
         return KeyedEncodingContainer(container)
@@ -664,7 +660,7 @@ extension _MsgPackEncdoer {
     }
 
     fileprivate func box<T : Encodable>(_ value : T) throws -> NSObject {
-        return try box_(value) ?? NSDictionary()
+        return try box_(value) ?? OrderedDictionary<Any, Any>()
     }
 
     fileprivate func box_<T : Encodable>(_ value : T) throws -> NSObject? {
@@ -688,7 +684,7 @@ extension _MsgPackEncdoer {
 fileprivate class _MsgPackReferencingEncoder : _MsgPackEncdoer {
     private enum Reference {
         case array(NSMutableArray, Int)
-        case dictionary(NSMutableDictionary, String)
+        case dictionary(OrderedDictionary<Any, Any>, String)
     }
 
     fileprivate let encoder : _MsgPackEncdoer
@@ -702,7 +698,7 @@ fileprivate class _MsgPackReferencingEncoder : _MsgPackEncdoer {
         self.codingPath.append(_MsgPackKey(index: index))
     }
 
-    fileprivate init(referencing encoder : _MsgPackEncdoer, at key : CodingKey, wrapping dictionary : NSMutableDictionary) {
+    fileprivate init(referencing encoder : _MsgPackEncdoer, at key : CodingKey, wrapping dictionary : OrderedDictionary<Any, Any>) {
         self.encoder = encoder
         self.reference = .dictionary(dictionary, key.stringValue)
         super.init(codingPath: encoder.codingPath)
@@ -717,7 +713,7 @@ fileprivate class _MsgPackReferencingEncoder : _MsgPackEncdoer {
     deinit {
         let value: Any
         switch self.storage.count {
-        case 0: value = NSDictionary()
+        case 0: value = OrderedDictionary<Any, Any>()
         case 1: value = self.storage.popContainer()
         default: fatalError("Referencing encoder deallocated with multiple containers on stack.")
         }
@@ -727,7 +723,12 @@ fileprivate class _MsgPackReferencingEncoder : _MsgPackEncdoer {
             array.insert(value, at: index)
 
         case .dictionary(let dictionary, let key):
-            dictionary[NSString(string: key)] = value
+            // TODO: Support key other type
+            do {
+                try dictionary[self.box(key)] = value
+            } catch let e {
+                fatalError(e.localizedDescription)
+            }
         }
     }
 }
@@ -753,4 +754,3 @@ fileprivate struct _MsgPackKey : CodingKey {
 
     fileprivate static let `super` = _MsgPackKey(stringValue: "super")!
 }
-
