@@ -6,3 +6,11 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  webhooks:
+    urls:
+     secure: "awvYDCrLX2S6H7DRkdvhTNZTdiqfmc03VjHPKaxC9P+CFmHsPSXsNPXrhRS6HXAc4DTTsoPxU4GQ3Zz5dj3fX/ctLiEXMB4SdJxxdj22eWKEZeKqdm7y6/7qACmGvIPEG+uZlqpKJyVcmSXdW3yiR4zJr/z2VRANOvtmDjGlh6f6GfDx5wpcSmnq5C10kPMisSZngwuzZ3DM5mSlMU5wUXEi80UVooW3HfGQtHs2rIYWZr7hxHQGW0SGm3QYWRL8mpAp5GZ+5Uo1GJCGEKu416nGytaM8zoAX6FXhrbBNi3quGPbi09eEbBRWM+o58TfPUuP4+YAnX24SeeuliGAOrgGuZ8qRxGvIK5qDFAD+DTzN6MWbBcbTX3Ry7Cv5oqqKWzGMB86Z93+fq/ml9psNP34ACE2CcvbVv04o/bvmehoING6du+SMI4f+19n70eRymuhMyNHa4QpF28cQ4ppt8gT4B2HVznmBFpZSVvyJuTiG9ncT1NURsxEWZvCk1v1UDoVtBeiTiDDvi482t10xcWo5ydDlZHkpwyE9qxfx/7bxHNT/sfg72sArn8w8XVhyvgZX3sSWo+5HTBeMPxc/bZlomXWMp/SZ1FtC2plHP2zm0m+v1YdJfNJM2cRBbw/7QVfdzSh1EVRtQm42Tjvib+2PTqNA+iSHx0jzwhSCLs=" 
+    on_success: change  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
