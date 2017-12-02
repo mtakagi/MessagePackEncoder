@@ -36,5 +36,7 @@ class MapTests : XCTestCase {
 
     static var allTests = [
         ("testEncodeEmptyMap", testEncodeEmptyMap),
+        ("testEncodeStringMap", testEncodeStringMap),
+        ("testEncodeBoolMap", testEncodeBoolMap),
     ]
 }
