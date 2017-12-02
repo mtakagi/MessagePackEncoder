@@ -4,7 +4,7 @@ open class MessagePackEncoder {
 
     public enum DateEncodingStrategy {
         case secondsSince1970
-        case secondAndNanoSecondSince1970
+//        case secondAndNanoSecondSince1970
     }
 
     public enum UInt8ArrayEncodingStrategy {
