@@ -1194,7 +1194,7 @@ extension _MsgPackDecoder {
                                              DecodingError.Context(codingPath: self.codingPath,
                                                                    debugDescription: "Not a Int8 type"))
         }
-        return Int8(value)
+        return Int8(truncatingIfNeeded: value)
     }
 
     fileprivate func unbox(as type: Int16.Type) throws -> Int16? {
@@ -1204,8 +1204,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Int16 type"))
         }
 
-        let data = self.storage.data.dropFirst(2)
-        let pattern = UInt16(data[0]) << 8 | UInt16(data[1])
+        let pattern = UInt16(unpack(self.storage.popFirst(2), 2))
 
         return Int16(bitPattern: pattern)
     }
@@ -1220,12 +1219,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Int32 type"))
         }
 
-        let data = self.storage.data.dropFirst(4)
-        var pattern : UInt32 = 0
-
-        for i in 0..<4 {
-            pattern |= UInt32(data[i]) << (8 * (3 - i))
-        }
+        let pattern = UInt32(unpack(self.storage.popFirst(4), 4))
 
         return Int32(bitPattern: pattern)
     }
@@ -1240,12 +1234,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Int32 type"))
         }
 
-        let data = self.storage.data.dropFirst(8)
-        var pattern : UInt64 = 0
-
-        for i in 0..<8 {
-            pattern |= UInt64(data[i]) << (8 * (7 - i))
-        }
+        let pattern = unpack(self.storage.popFirst(8), 8)
 
         return Int64(bitPattern: pattern)
     }
@@ -1294,10 +1283,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Int16 type"))
         }
 
-        let data = self.storage.data.dropFirst(2)
-        let pattern = UInt16(data[0]) << 8 | UInt16(data[1])
-
-        return pattern
+        return UInt16(unpack(self.storage.popFirst(2), 2))
     }
 
     fileprivate func unbox(as type: UInt32.Type) throws -> UInt32? {
@@ -1310,14 +1296,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Int32 type"))
         }
 
-        let data = self.storage.data.dropFirst(4)
-        var pattern : UInt32 = 0
-
-        for i in 0..<4 {
-            pattern |= UInt32(data[i]) << (8 * (3 - i))
-        }
-
-        return pattern
+        return UInt32(unpack(self.storage.popFirst(4), 4))
     }
 
     fileprivate func unbox(as type: UInt64.Type) throws -> UInt64? {
@@ -1330,14 +1309,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Int32 type"))
         }
 
-        let data = self.storage.data.dropFirst(8)
-        var pattern : UInt64 = 0
-
-        for i in 0..<8 {
-            pattern |= UInt64(data[i]) << (8 * (7 - i))
-        }
-
-        return pattern
+        return unpack(self.storage.popFirst(8), 8)
     }
 
     fileprivate func unbox(as type: Float.Type) throws -> Float? {
@@ -1509,6 +1481,9 @@ extension _MsgPackDecoder {
 }
 
 fileprivate let unpack = {(data : Data, count : Int) -> UInt64 in
+    guard data.count > 0 else {
+        return 0
+    }
     var result : UInt64 = 0
 
     for i in 0..<count {
