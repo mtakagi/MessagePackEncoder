@@ -19,12 +19,24 @@ class BinaryTests: XCTestCase {
         XCTAssertEqual(encoded, result)
     }
 
+    func testDecodeBinary8Min() {
+        let decoder = MessagePackDecoder()
+        let result = try! decoder.decode(Data.self, from: Data(bytes: [0xc4, 0x00]))
+        XCTAssertEqual(result!, Data(count: 0))
+    }
+
     func testEncodeBinary8Max() {
         let data = Data(count: 0xff)
         let result = Data(bytes: [0xc4, 0xff]) + data
         let encoder = MessagePackEncoder()
         let encoded = try! encoder.encode(data)
         XCTAssertEqual(encoded, result)
+    }
+
+    func testDecodeBinary8Max() {
+        let decoder = MessagePackDecoder()
+        let result = try! decoder.decode(Data.self, from: Data(bytes: [0xc4, 0xff]) + Data(count: 0xff))
+        XCTAssertEqual(result!, Data(count: 0xff))
     }
 
     func testEncodeBinary16Min() {
@@ -35,12 +47,24 @@ class BinaryTests: XCTestCase {
         XCTAssertEqual(encoded, result)
     }
 
+    func testDecodeBinary16Min() {
+        let decoder = MessagePackDecoder()
+        let result = try! decoder.decode(Data.self, from: Data(bytes: [0xc5, 0x01, 0x00]) + Data(count: 0x100))
+        XCTAssertEqual(result!, Data(count: 0x100))
+    }
+
     func testEncodeBinary16Max() {
         let data = Data(count: 0xffff)
         let result = Data(bytes: [0xc5, 0xff, 0xff]) + data
         let encoder = MessagePackEncoder()
         let encoded = try! encoder.encode(data)
         XCTAssertEqual(encoded, result)
+    }
+
+    func testDecodeBinary16Max() {
+        let decoder = MessagePackDecoder()
+        let result = try! decoder.decode(Data.self, from: Data(bytes: [0xc5, 0xff, 0xff]) + Data(count: 0xffff))
+        XCTAssertEqual(result!, Data(count: 0xffff))
     }
 
     func testEncodeBinary32Min() {
@@ -51,6 +75,13 @@ class BinaryTests: XCTestCase {
         XCTAssertEqual(encoded, result)
     }
 
+    func testDecodeBinary32Min() {
+        let decoder = MessagePackDecoder()
+        let result = try! decoder.decode(Data.self,
+                                         from: Data(bytes: [0xc6, 0x01, 0x00, 0x00, 0x00]) + Data(count: 0x10000))
+        XCTAssertEqual(result!, Data(count: 0x10000))
+    }
+
     func testEncodeBinary32Max() {
         let data = Data(count: 0xffff_ffff)
         let result = Data(bytes: [0xc6, 0xff, 0xff, 0xff, 0xff]) + data
@@ -58,6 +89,14 @@ class BinaryTests: XCTestCase {
         let encoded = try! encoder.encode(data)
         XCTAssertEqual(encoded, result)
     }
+
+//    func testDecodeBinary32Max() {
+//        let decoder = MessagePackDecoder()
+//        let result = try! decoder.decode(Data.self,
+//                                         from: Data(bytes: [0xc6, 0xff, 0xff, 0xff, 0xff])
+//                                            + Data(count: 0xffffffff))
+//        XCTAssertEqual(result!, Data(count: 0xffffffff))
+//    }
 
     func testEncodeBinaryOutOfRange() {
         do {
@@ -74,11 +113,16 @@ class BinaryTests: XCTestCase {
 
     static var allTests = [
         ("testEncodeBinary8Min", testEncodeBinary8Min),
+        ("testDecodeBinary8Min", testDecodeBinary8Min),
         ("testEncodeBinary8Max", testEncodeBinary8Max),
+        ("testDecodeBinary8Max", testDecodeBinary8Max),
         ("testEncodeBinary16Min", testEncodeBinary16Min),
+        ("testDecodeBinary16Min", testDecodeBinary16Min),
         ("testEncodeBinary16Max", testEncodeBinary16Max),
+        ("testDecodeBinary16Max", testDecodeBinary16Max),
         ("testEncodeBinary32Min", testEncodeBinary32Min),
+        ("testDecodeBinary32Min", testDecodeBinary32Min),
         ("testEncodeBinary32Max", testEncodeBinary32Max),
         ("testEncodeBinaryOutOfRange", testEncodeBinaryOutOfRange),
-        ]
+    ]
 }

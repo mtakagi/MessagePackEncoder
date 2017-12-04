@@ -790,3 +790,730 @@ fileprivate struct _MsgPackKey : CodingKey {
 
     fileprivate static let `super` = _MsgPackKey(stringValue: "super")!
 }
+
+open class MessagePackDecoder {
+
+    open var userInfo: [CodingUserInfoKey : Any] = [:]
+
+    fileprivate struct _Options {
+        let userInfo : [CodingUserInfoKey : Any]
+    }
+
+    fileprivate var options : _Options {
+        return _Options(userInfo: userInfo)
+    }
+
+    public init() {}
+
+    open func decode<T : Decodable>(_ type : T.Type, from data : Data) throws -> T? {
+        let decoder = _MsgPackDecoder(options: options, data: data)
+
+        guard let value = try decoder.unbox(as: T.self) else {
+            return nil
+        }
+
+        return value
+    }
+
+}
+
+fileprivate class _MsgPackDecoder : Decoder {
+    fileprivate let options : MessagePackDecoder._Options
+    fileprivate var storage : _MsgPackDecodingContainer
+    public var codingPath: [CodingKey]
+
+    var userInfo: [CodingUserInfoKey : Any]
+
+    fileprivate init(options: MessagePackDecoder._Options, data : Data, codingPath : [CodingKey] = []) {
+        self.options = options
+        self.storage = _MsgPackDecodingContainer(data: data)
+        self.codingPath = codingPath
+        self.userInfo = options.userInfo
+    }
+
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+        let container = _MsgPackKeyedDecodingContainer<Key>(decoder: self, codingPath: self.codingPath)
+        return KeyedDecodingContainer(container)
+    }
+
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        return _MsgPackUnkeyedDecodingContainer(decoder: self)
+    }
+
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
+        return self
+    }
+}
+
+fileprivate struct _MsgPackDecodingContainer {
+
+    fileprivate var data : Data
+
+    public var count : Int {
+        return data.count
+    }
+
+    fileprivate init(data : Data) {
+        self.data = data
+    }
+
+    public mutating func popFirst(_ n : Int) -> Data {
+        var result = Data(capacity: n)
+
+        for _ in 0..<n {
+            if let first = self.data.popFirst() {
+                result.append(first)
+            }
+        }
+
+        return result
+    }
+}
+
+fileprivate struct _MsgPackKeyedDecodingContainer<K : CodingKey> : KeyedDecodingContainerProtocol {
+
+    typealias Key = K
+
+    fileprivate let decoder : _MsgPackDecoder
+    var codingPath: [CodingKey]
+
+
+    var allKeys: [Key] {
+        return []
+    }
+
+    fileprivate init(decoder : _MsgPackDecoder, codingPath : [CodingKey] = []) {
+        self.decoder = decoder
+        self.codingPath = codingPath
+    }
+
+    func contains(_ key: Key) -> Bool {
+        fatalError()
+    }
+
+    func decodeNil(forKey key: Key) throws -> Bool {
+        fatalError()
+    }
+
+    func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
+        fatalError()
+    }
+
+    func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
+        fatalError()
+    }
+
+    func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
+        fatalError()
+    }
+
+    func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
+        fatalError()
+    }
+
+    func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
+        fatalError()
+    }
+
+    func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
+        fatalError()
+    }
+
+    func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
+        fatalError()
+    }
+
+    func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
+        fatalError()
+    }
+
+    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
+        fatalError()
+    }
+
+    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
+        fatalError()
+    }
+
+    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
+        fatalError()
+    }
+
+    func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
+        fatalError()
+    }
+
+    func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
+        fatalError()
+    }
+
+    func decode(_ type: String.Type, forKey key: Key) throws -> String {
+        fatalError()
+    }
+
+    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
+        fatalError()
+    }
+
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+        fatalError()
+    }
+
+    func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
+        fatalError()
+    }
+
+    func superDecoder() throws -> Decoder {
+        fatalError()
+    }
+
+    func superDecoder(forKey key: Key) throws -> Decoder {
+        fatalError()
+    }
+}
+
+fileprivate struct _MsgPackUnkeyedDecodingContainer : UnkeyedDecodingContainer {
+    private let decoder : _MsgPackDecoder
+    var codingPath: [CodingKey]
+
+    var count: Int?
+
+    var isAtEnd: Bool
+
+    var currentIndex: Int
+
+    fileprivate init(decoder : _MsgPackDecoder) {
+        self.decoder = decoder
+        self.codingPath = decoder.codingPath
+        self.currentIndex = 0
+        self.count = 0
+        self.isAtEnd = false
+    }
+
+    mutating func decodeNil() throws -> Bool {
+        return self.decoder.storage.data.first == 0xc0
+    }
+
+    mutating func decode(_ type: Bool.Type) throws -> Bool {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: Int.Type) throws -> Int {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: Int8.Type) throws -> Int8 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: Int16.Type) throws -> Int16 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: Int32.Type) throws -> Int32 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: Int64.Type) throws -> Int64 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: UInt.Type) throws -> UInt {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: UInt16.Type) throws -> UInt16 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: UInt32.Type) throws -> UInt32 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: UInt64.Type) throws -> UInt64 {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: Float.Type) throws -> Float {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: Double.Type) throws -> Double {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode(_ type: String.Type) throws -> String {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+        return try self.decoder.unbox(as: type)!
+    }
+
+    mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+        fatalError()
+    }
+
+    mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
+        return _MsgPackUnkeyedDecodingContainer(decoder: self.decoder)
+    }
+
+    mutating func superDecoder() throws -> Decoder {
+        return _MsgPackDecoder(options: self.decoder.options, data: self.decoder.storage.data)
+    }
+
+
+}
+
+extension _MsgPackDecoder : SingleValueDecodingContainer {
+    func decodeNil() -> Bool {
+        return self.storage.data.first == 0xc0
+    }
+
+    func decode(_ type: Bool.Type) throws -> Bool {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: Int.Type) throws -> Int {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: Int8.Type) throws -> Int8 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: Int16.Type) throws -> Int16 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: Int32.Type) throws -> Int32 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: Int64.Type) throws -> Int64 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: UInt.Type) throws -> UInt {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: UInt8.Type) throws -> UInt8 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: UInt16.Type) throws -> UInt16 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: UInt32.Type) throws -> UInt32 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: UInt64.Type) throws -> UInt64 {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: Float.Type) throws -> Float {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: Double.Type) throws -> Double {
+        return try self.unbox(as: type)!
+    }
+
+    func decode(_ type: String.Type) throws -> String {
+        return try self.unbox(as: type)!
+    }
+
+    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+        return try self.unbox(as: type)!
+    }
+}
+
+extension _MsgPackDecoder {
+    fileprivate func unbox(as type: Bool.Type) throws -> Bool? {
+        guard let data = self.storage.data.popFirst() else {
+            fatalError()
+        }
+
+        guard 0xc0 != data else {
+            return nil
+        }
+
+        switch data {
+        case 0xc2:
+            return false
+        case 0xc3:
+            return true
+        default:
+            throw DecodingError.typeMismatch(Bool.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Bool type"))
+        }
+    }
+
+    fileprivate func unbox(as type: Int.Type) throws -> Int? {
+        guard let first = self.storage.data.first, first != 0xc0 else {
+            return nil
+        }
+
+        switch first {
+        case 0x00...0x7f:
+            self.storage.data.removeFirst()
+            return Int(first)
+        case 0xe0...0xff:
+            self.storage.data.removeFirst()
+            return Int(Int8(truncatingIfNeeded: first))
+        case 0xd0:
+            return try Int(unbox(as: Int8.self)!)
+        case 0xd1:
+            return try Int(unbox(as: Int16.self)!)
+        case 0xd2:
+            return try Int(unbox(as: Int32.self)!)
+        case 0xd3:
+            return try MemoryLayout<Int>.size == 4 ? nil : Int(unbox(as: Int64.self)!)
+        default:
+            throw DecodingError.typeMismatch(Int.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int type"))
+        }
+    }
+
+    fileprivate func unbox(as type: Int8.Type) throws -> Int8? {
+        guard let header = self.storage.data.popFirst(), header != 0xc0 else {
+            return nil
+        }
+
+        guard header == 0xd0, let value = self.storage.data.popFirst() else {
+            throw DecodingError.typeMismatch(Int8.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int8 type"))
+        }
+        return Int8(value)
+    }
+
+    fileprivate func unbox(as type: Int16.Type) throws -> Int16? {
+        guard let header = self.storage.data.popFirst(), header == 0xd1 else {
+            throw DecodingError.typeMismatch(Int16.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int16 type"))
+        }
+
+        let data = self.storage.data.dropFirst(2)
+        let pattern = UInt16(data[0]) << 8 | UInt16(data[1])
+
+        return Int16(bitPattern: pattern)
+    }
+
+    fileprivate func unbox(as type: Int32.Type) throws -> Int32? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+        guard header == 0xd2 else {
+            throw DecodingError.typeMismatch(Int32.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int32 type"))
+        }
+
+        let data = self.storage.data.dropFirst(4)
+        var pattern : UInt32 = 0
+
+        for i in 0..<4 {
+            pattern |= UInt32(data[i]) << (8 * (3 - i))
+        }
+
+        return Int32(bitPattern: pattern)
+    }
+
+    fileprivate func unbox(as type: Int64.Type) throws -> Int64? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+        guard header == 0xd3 else {
+            throw DecodingError.typeMismatch(Int32.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int32 type"))
+        }
+
+        let data = self.storage.data.dropFirst(8)
+        var pattern : UInt64 = 0
+
+        for i in 0..<8 {
+            pattern |= UInt64(data[i]) << (8 * (7 - i))
+        }
+
+        return Int64(bitPattern: pattern)
+    }
+
+    fileprivate func unbox(as type: UInt.Type) throws -> UInt? {
+        guard let first = self.storage.data.first, first != 0xc0 else {
+            return nil
+        }
+
+        switch first {
+        case 0x00...0x7f:
+            self.storage.data.removeFirst()
+            return UInt(first)
+        case 0xd0:
+            return try UInt(unbox(as: UInt8.self)!)
+        case 0xd1:
+            return try UInt(unbox(as: UInt16.self)!)
+        case 0xd2:
+            return try UInt(unbox(as: UInt32.self)!)
+        case 0xd3:
+            return try MemoryLayout<UInt>.size == 4 ? nil : UInt(unbox(as: UInt64.self)!)
+        default:
+            throw DecodingError.typeMismatch(Int.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int type"))
+        }
+    }
+
+    fileprivate func unbox(as type: UInt8.Type) throws -> UInt8? {
+        guard let header = self.storage.data.popFirst(), header != 0xc0 else {
+            return nil
+        }
+
+        guard header == 0xcc, let value = self.storage.data.popFirst() else {
+            throw DecodingError.typeMismatch(UInt8.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a UInt8 type"))
+        }
+        return value
+    }
+
+    fileprivate func unbox(as type: UInt16.Type) throws -> UInt16? {
+        guard let header = self.storage.data.popFirst(), header == 0xcd else {
+            throw DecodingError.typeMismatch(Int16.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int16 type"))
+        }
+
+        let data = self.storage.data.dropFirst(2)
+        let pattern = UInt16(data[0]) << 8 | UInt16(data[1])
+
+        return pattern
+    }
+
+    fileprivate func unbox(as type: UInt32.Type) throws -> UInt32? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+        guard header == 0xce else {
+            throw DecodingError.typeMismatch(Int32.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int32 type"))
+        }
+
+        let data = self.storage.data.dropFirst(4)
+        var pattern : UInt32 = 0
+
+        for i in 0..<4 {
+            pattern |= UInt32(data[i]) << (8 * (3 - i))
+        }
+
+        return pattern
+    }
+
+    fileprivate func unbox(as type: UInt64.Type) throws -> UInt64? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+        guard header == 0xcf else {
+            throw DecodingError.typeMismatch(Int32.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Int32 type"))
+        }
+
+        let data = self.storage.data.dropFirst(8)
+        var pattern : UInt64 = 0
+
+        for i in 0..<8 {
+            pattern |= UInt64(data[i]) << (8 * (7 - i))
+        }
+
+        return pattern
+    }
+
+    fileprivate func unbox(as type: Float.Type) throws -> Float? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+
+        if header == 0xc0 {
+            return nil
+        }
+
+        guard header == 0xca else {
+            throw DecodingError.typeMismatch(Int32.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Float type"))
+        }
+
+        let data = self.storage.data.dropFirst(4)
+        var pattern : UInt32 = 0
+
+        for i in 0..<4 {
+            pattern |= UInt32(data[i]) << (8 * (3 - i))
+        }
+
+        return Float(bitPattern: pattern)
+    }
+
+    fileprivate func unbox(as type: Double.Type) throws -> Double? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+
+        if header == 0xc0 {
+            return nil
+        }/* else if header == 0xca {
+            return Double(unbox(as: Float.Type))
+        }*/
+
+        guard header == 0xcb else {
+            throw DecodingError.typeMismatch(Int32.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Float type"))
+        }
+
+        let data = self.storage.data.dropFirst(8)
+        var pattern : UInt64 = 0
+
+        for i in 0..<8 {
+            pattern |= UInt64(data[i]) << (8 * (7 - i))
+        }
+
+        return Double(bitPattern: pattern)
+    }
+
+    fileprivate func unbox(as type: String.Type) throws -> String? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+
+        if header == 0xc0 {
+            return nil
+        }
+
+        switch header {
+        case 0b101_00000...0b101_11111:
+            let count = header ^ 0b101_00000
+            let data = self.storage.data.dropFirst(Int(count))
+            return String(data: data, encoding: .utf8)
+        case 0xd9:
+            let count = self.storage.data.removeFirst()
+            let data = self.storage.data.dropFirst(Int(count))
+            return String(data: data, encoding: .utf8)
+        case 0xda:
+            let countData = self.storage.data.dropFirst(2)
+            let count = Int(countData[0]) << 8 | Int(countData[1])
+            let data = self.storage.data.dropFirst(count)
+            return String(data: data, encoding: .utf8)
+        case 0xdb:
+            let countData = self.storage.data.dropFirst(4)
+            var count : Int = 0
+
+            for i in 0..<4 {
+                count |= Int(countData[i]) << (8 * (3 - i))
+            }
+
+            let data = self.storage.data.dropFirst(count)
+            return String(data: data, encoding: .utf8)
+        default:
+            throw DecodingError.typeMismatch(String.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a String type"))
+        }
+    }
+
+    fileprivate func unbox(as type: Data.Type) throws -> Data? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+
+        if header == 0xc0 {
+            return nil
+        }
+
+        switch header {
+        case 0xc4:
+            let count = self.storage.data.removeFirst()
+
+            return self.storage.popFirst(Int(count))
+        case 0xc5:
+            let count = Int(unpack(self.storage.popFirst(2), 2))
+
+            return self.storage.popFirst(count)
+        case 0xc6:
+            let count = Int(unpack(self.storage.popFirst(4), 4))
+
+            return self.storage.popFirst(count)
+        default:
+            throw DecodingError.typeMismatch(Data.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Data type"))
+        }
+    }
+
+    fileprivate func unbox(as type: Date.Type) throws -> Date? {
+        guard let header = self.storage.data.popFirst() else {
+            fatalError()
+        }
+
+        if header == 0xc0 {
+            return nil
+        }
+
+        guard header == 0xd6, let ext = self.storage.data.popFirst(), ext == 0xff else {
+            throw DecodingError.typeMismatch(Data.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Data type"))
+        }
+
+        let count = unpack(self.storage.popFirst(4), 4)
+
+        return Date(timeIntervalSince1970: TimeInterval(count))
+    }
+
+    fileprivate func unbox<T : Decodable>(as type: T.Type) throws -> T? {
+        guard self.storage.data.first != 0xc0 else {
+            return nil
+        }
+
+        let decode : T
+
+        if T.self == Data.self || T.self == NSData.self {
+            guard let data = try self.unbox(as: Data.self) else {
+                return nil
+            }
+
+            decode = data as! T
+        } else if T.self == Date.self || T.self == NSDate.self {
+            guard let date = try self.unbox(as: Date.self) else {
+                return nil
+            }
+
+            decode = date as! T
+        } else {
+            decode = try T(from: self)
+        }
+
+        return decode
+    }
+}
+
+fileprivate let unpack = {(data : Data, count : Int) -> UInt64 in
+    var result : UInt64 = 0
+
+    for i in 0..<count {
+        result = result << 8 | UInt64(data[i])
+    }
+
+    return result
+}
