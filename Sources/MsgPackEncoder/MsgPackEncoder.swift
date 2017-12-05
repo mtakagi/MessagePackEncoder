@@ -1327,12 +1327,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Float type"))
         }
 
-        let data = self.storage.data.dropFirst(4)
-        var pattern : UInt32 = 0
-
-        for i in 0..<4 {
-            pattern |= UInt32(data[i]) << (8 * (3 - i))
-        }
+        let pattern = UInt32(unpack(self.storage.popFirst(4), 4))
 
         return Float(bitPattern: pattern)
     }
@@ -1354,12 +1349,7 @@ extension _MsgPackDecoder {
                                                                    debugDescription: "Not a Float type"))
         }
 
-        let data = self.storage.data.dropFirst(8)
-        var pattern : UInt64 = 0
-
-        for i in 0..<8 {
-            pattern |= UInt64(data[i]) << (8 * (7 - i))
-        }
+        let pattern = unpack(self.storage.popFirst(8), 8)
 
         return Double(bitPattern: pattern)
     }
