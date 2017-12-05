@@ -1259,9 +1259,9 @@ extension _MsgPackDecoder {
             fatalError()
         }
         guard header == 0xd3 else {
-            throw DecodingError.typeMismatch(Int32.self,
+            throw DecodingError.typeMismatch(Int64.self,
                                              DecodingError.Context(codingPath: self.codingPath,
-                                                                   debugDescription: "Not a Int32 type"))
+                                                                   debugDescription: "Not a Int64 type"))
         }
 
         let pattern = unpack(self.storage.popFirst(8), 8)
@@ -1287,9 +1287,9 @@ extension _MsgPackDecoder {
         case 0xd3:
             return try MemoryLayout<UInt>.size == 4 ? nil : UInt(unbox(as: UInt64.self)!)
         default:
-            throw DecodingError.typeMismatch(Int.self,
+            throw DecodingError.typeMismatch(UInt.self,
                                              DecodingError.Context(codingPath: self.codingPath,
-                                                                   debugDescription: "Not a Int type"))
+                                                                   debugDescription: "Not a UInt type"))
         }
     }
 
@@ -1308,9 +1308,9 @@ extension _MsgPackDecoder {
 
     fileprivate func unbox(as type: UInt16.Type) throws -> UInt16? {
         guard let header = self.storage.data.popFirst(), header == 0xcd else {
-            throw DecodingError.typeMismatch(Int16.self,
+            throw DecodingError.typeMismatch(UInt16.self,
                                              DecodingError.Context(codingPath: self.codingPath,
-                                                                   debugDescription: "Not a Int16 type"))
+                                                                   debugDescription: "Not a UInt16 type"))
         }
 
         return UInt16(unpack(self.storage.popFirst(2), 2))
@@ -1321,9 +1321,9 @@ extension _MsgPackDecoder {
             fatalError()
         }
         guard header == 0xce else {
-            throw DecodingError.typeMismatch(Int32.self,
+            throw DecodingError.typeMismatch(UInt32.self,
                                              DecodingError.Context(codingPath: self.codingPath,
-                                                                   debugDescription: "Not a Int32 type"))
+                                                                   debugDescription: "Not a UInt32 type"))
         }
 
         return UInt32(unpack(self.storage.popFirst(4), 4))
@@ -1334,9 +1334,9 @@ extension _MsgPackDecoder {
             fatalError()
         }
         guard header == 0xcf else {
-            throw DecodingError.typeMismatch(Int32.self,
+            throw DecodingError.typeMismatch(UInt64.self,
                                              DecodingError.Context(codingPath: self.codingPath,
-                                                                   debugDescription: "Not a Int32 type"))
+                                                                   debugDescription: "Not a UInt64 type"))
         }
 
         return unpack(self.storage.popFirst(8), 8)
@@ -1352,7 +1352,7 @@ extension _MsgPackDecoder {
         }
 
         guard header == 0xca else {
-            throw DecodingError.typeMismatch(Int32.self,
+            throw DecodingError.typeMismatch(Float.self,
                                              DecodingError.Context(codingPath: self.codingPath,
                                                                    debugDescription: "Not a Float type"))
         }
@@ -1374,9 +1374,9 @@ extension _MsgPackDecoder {
         }*/
 
         guard header == 0xcb else {
-            throw DecodingError.typeMismatch(Int32.self,
+            throw DecodingError.typeMismatch(Double.self,
                                              DecodingError.Context(codingPath: self.codingPath,
-                                                                   debugDescription: "Not a Float type"))
+                                                                   debugDescription: "Not a Double type"))
         }
 
         let pattern = unpack(self.storage.popFirst(8), 8)
@@ -1458,9 +1458,9 @@ extension _MsgPackDecoder {
         }
 
         guard header == 0xd6, let ext = self.storage.data.popFirst(), ext == 0xff else {
-            throw DecodingError.typeMismatch(Data.self,
+            throw DecodingError.typeMismatch(Date.self,
                                              DecodingError.Context(codingPath: self.codingPath,
-                                                                   debugDescription: "Not a Data type"))
+                                                                   debugDescription: "Not a Date type"))
         }
 
         let count = unpack(self.storage.popFirst(4), 4)
@@ -1469,7 +1469,7 @@ extension _MsgPackDecoder {
     }
 
     fileprivate func unbox<T : Decodable>(as type: T.Type) throws -> T? {
-        guard self.storage.data.first != 0xc0 else {
+        guard self.storage.data.first != 0xc0 && !self.storage.data.isEmpty else {
             return nil
         }
 
