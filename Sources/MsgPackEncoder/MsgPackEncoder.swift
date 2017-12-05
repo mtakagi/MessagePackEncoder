@@ -1278,13 +1278,13 @@ extension _MsgPackDecoder {
         case 0x00...0x7f:
             self.storage.data.removeFirst()
             return UInt(first)
-        case 0xd0:
+        case 0xcc:
             return try UInt(unbox(as: UInt8.self)!)
-        case 0xd1:
+        case 0xcd:
             return try UInt(unbox(as: UInt16.self)!)
-        case 0xd2:
+        case 0xce:
             return try UInt(unbox(as: UInt32.self)!)
-        case 0xd3:
+        case 0xcf:
             return try MemoryLayout<UInt>.size == 4 ? nil : UInt(unbox(as: UInt64.self)!)
         default:
             throw DecodingError.typeMismatch(UInt.self,

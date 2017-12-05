@@ -16,7 +16,7 @@ internal enum UIntType {
     case uint64(UInt64)
 }
 
-extension UIntType : Encodable {
+extension UIntType : Codable {
     func encode(to encoder: Encoder) throws {
         switch self {
         case .uint(let value):
@@ -31,6 +31,34 @@ extension UIntType : Encodable {
             try value.encode(to: encoder)
         }
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self = try .uint(container.decode(UInt.self))
+    }
+}
+
+extension UIntType {
+    func rawValue() -> UInt64 {
+        switch self {
+        case .uint(let value):
+            return UInt64(value)
+        case .uint8(let value):
+            return UInt64(value)
+        case .uint16(let value):
+            return UInt64(value)
+        case .uint32(let value):
+            return UInt64(value)
+        case .uint64(let value):
+            return value
+        }
+    }
+}
+
+extension UIntType : Equatable {
+    static func ==(lhs: UIntType, rhs: UIntType) -> Bool {
+        return lhs.rawValue() == rhs.rawValue()
+    }
 }
 
 internal enum IntType {
@@ -41,7 +69,7 @@ internal enum IntType {
     case int64(Int64)
 }
 
-extension IntType : Encodable {
+extension IntType : Codable {
     func encode(to encoder: Encoder) throws {
         switch self {
         case .int(let value):
@@ -55,6 +83,34 @@ extension IntType : Encodable {
         case .int64(let value):
             try value.encode(to: encoder)
         }
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self = try .int(container.decode(Int.self))
+    }
+}
+
+extension IntType {
+    func rawValue() -> Int64 {
+        switch self {
+        case .int(let value):
+            return Int64(value)
+        case .int8(let value):
+            return Int64(value)
+        case .int16(let value):
+            return Int64(value)
+        case .int32(let value):
+            return Int64(value)
+        case .int64(let value):
+            return value
+        }
+    }
+}
+
+extension IntType : Equatable {
+    static func ==(lhs: IntType, rhs: IntType) -> Bool {
+        return lhs.rawValue() == rhs.rawValue()
     }
 }
 
@@ -161,12 +217,30 @@ class ArrayTests : XCTestCase {
         XCTAssertEqual(result, Data([0x95, 0xcc, 0xff, 0xcd, 0xff, 0xff, 0xce, 0xff, 0xff, 0xff, 0xff, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]))
     }
 
+    func testDecodeUIntArray() {
+        let decoder = MessagePackDecoder()
+        let array : [UIntType] = [.uint8(UInt8.max), .uint16(UInt16.max), .uint32(UInt32.max), .uint64(UInt64.max), .uint(UInt.max)]
+        let result = try! decoder.decode([UIntType].self,
+                                         from: Data([0x95, 0xcc, 0xff, 0xcd, 0xff, 0xff, 0xce, 0xff, 0xff, 0xff, 0xff, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]))
+
+        XCTAssertEqual(result!, array)
+    }
+
     func testEncodeIntArray() {
         let encoder = MessagePackEncoder()
         let array : [IntType] = [.int8(Int8.min), .int16(Int16.min), .int32(Int32.min), .int64(Int64.min), .int(Int.min)]
         let result = try! encoder.encode(array)
 
         XCTAssertEqual(result, Data([0x95, 0xd0, 0x80, 0xd1, 0x80, 0x00, 0xd2, 0x80, 0x00, 0x00, 0x00, 0xd3, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd3, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+    }
+
+    func testDecodeIntArray() {
+        let decoder = MessagePackDecoder()
+        let array : [IntType] = [.int8(Int8.min), .int16(Int16.min), .int32(Int32.min), .int64(Int64.min), .int(Int.min)]
+        let result = try! decoder.decode([IntType].self,
+                                         from: Data([0x95, 0xd0, 0x80, 0xd1, 0x80, 0x00, 0xd2, 0x80, 0x00, 0x00, 0x00, 0xd3, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd3, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+
+        XCTAssertEqual(result!, array)
     }
 
     static var allTests = [
@@ -182,7 +256,9 @@ class ArrayTests : XCTestCase {
         ("testEncodeStringArray", testEncodeStringArray),
         ("testDecodeStringArray", testDecodeStringArray),
         ("testEncodeUIntArray", testEncodeUIntArray),
+        ("testDecodeUIntArray", testDecodeUIntArray),
         ("testEncodeIntArray", testEncodeIntArray),
+        ("testDecodeIntArray", testDecodeIntArray),
     ]
 }
 
