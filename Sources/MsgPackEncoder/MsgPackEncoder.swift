@@ -1101,7 +1101,7 @@ fileprivate struct _MsgPackUnkeyedDecodingContainer : UnkeyedDecodingContainer {
 
 extension _MsgPackDecoder : SingleValueDecodingContainer {
     func decodeNil() -> Bool {
-        return self.storage.data.first == 0xc0
+        return self.storage.popFirst(1)[0] == 0xc0
     }
 
     func decode(_ type: Bool.Type) throws -> Bool {

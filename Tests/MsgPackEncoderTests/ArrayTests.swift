@@ -156,6 +156,15 @@ class ArrayTests : XCTestCase {
         XCTAssertEqual(result, Data([0xdc, 0xff, 0xff]) + Data([UInt8](repeating: 0xc0, count: 0xffff)))
     }
 
+    func testDecodeNilArray() {
+        let decoder = MessagePackDecoder()
+        let array : [Empty?] = [Empty?](repeating: nil, count: 0xffff)
+        let result = try! decoder.decode([Empty?].self,
+                                         from: Data([0xdc, 0xff, 0xff]) + Data([UInt8](repeating: 0xc0, count: 0xffff)))
+
+        XCTAssertTrue(result!.elementsEqual(array, by: {$0 == nil && $1 == nil}))
+    }
+
     func testEncodePositiveArray() {
         let encoder = MessagePackEncoder()
         let array = [Int](repeating: 0x7f, count: 0x1_0000)
@@ -249,6 +258,7 @@ class ArrayTests : XCTestCase {
         ("testEncodeBoolArray", testEncodeBoolArray),
         ("testDecodeBoolArray", testDecodeBoolArray),
         ("testEncodeNilArray", testEncodeNilArray),
+        ("testDecodeNilArray", testDecodeNilArray),
         ("testEncodePositiveArray", testEncodePositiveArray),
         ("testDecodePositiveArray", testDecodePositiveArray),
         ("testEncodeNegativeArray", testEncodeNegativeArray),
