@@ -1376,26 +1376,21 @@ extension _MsgPackDecoder {
         switch header {
         case 0b101_00000...0b101_11111:
             let count = header ^ 0b101_00000
-            let data = self.storage.data.dropFirst(Int(count))
+            let data = self.storage.popFirst(Int(count))
             return String(data: data, encoding: .utf8)
         case 0xd9:
             let count = self.storage.data.removeFirst()
-            let data = self.storage.data.dropFirst(Int(count))
+            let data = self.storage.popFirst(Int(count))
             return String(data: data, encoding: .utf8)
         case 0xda:
-            let countData = self.storage.data.dropFirst(2)
+            let countData = self.storage.popFirst(2)
             let count = Int(countData[0]) << 8 | Int(countData[1])
-            let data = self.storage.data.dropFirst(count)
+            let data = self.storage.popFirst(count)
             return String(data: data, encoding: .utf8)
         case 0xdb:
-            let countData = self.storage.data.dropFirst(4)
-            var count : Int = 0
+            let count : Int = Int(unpack(self.storage.popFirst(4), 4))
 
-            for i in 0..<4 {
-                count |= Int(countData[i]) << (8 * (3 - i))
-            }
-
-            let data = self.storage.data.dropFirst(count)
+            let data = self.storage.popFirst(count)
             return String(data: data, encoding: .utf8)
         default:
             throw DecodingError.typeMismatch(String.self,
