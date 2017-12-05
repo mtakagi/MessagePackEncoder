@@ -806,7 +806,8 @@ open class MessagePackDecoder {
     public init() {}
 
     open func decode<T : Decodable>(_ type : T.Type, from data : Data) throws -> T? {
-        let decoder = _MsgPackDecoder(options: options, data: data)
+        let container = _MsgPackDecodingContainer(data: data)
+        let decoder = _MsgPackDecoder(options: options, container: container)
 
         guard let value = try decoder.unbox(as: T.self) else {
             return nil
@@ -824,9 +825,9 @@ fileprivate class _MsgPackDecoder : Decoder {
 
     var userInfo: [CodingUserInfoKey : Any]
 
-    fileprivate init(options: MessagePackDecoder._Options, data : Data, codingPath : [CodingKey] = []) {
+    fileprivate init(options: MessagePackDecoder._Options, container : _MsgPackDecodingContainer, codingPath : [CodingKey] = []) {
         self.options = options
-        self.storage = _MsgPackDecodingContainer(data: data)
+        self.storage = container
         self.codingPath = codingPath
         self.userInfo = options.userInfo
     }
@@ -837,7 +838,21 @@ fileprivate class _MsgPackDecoder : Decoder {
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        return _MsgPackUnkeyedDecodingContainer(decoder: self)
+        let header = Int(self.storage.popFirst(1)[0])
+        let count : Int
+        switch header {
+        case 0x90...0x9f:
+            count = header ^ 0x90
+        case 0xdc:
+            count = Int(unpack(self.storage.popFirst(2), 2))
+        case 0xdd:
+            count = Int(unpack(self.storage.popFirst(4), 4))
+        default:
+            throw DecodingError.typeMismatch(Decoder.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Array type."))
+        }
+        return _MsgPackUnkeyedDecodingContainer(decoder: self, count: count)
     }
 
     func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -845,7 +860,7 @@ fileprivate class _MsgPackDecoder : Decoder {
     }
 }
 
-fileprivate struct _MsgPackDecodingContainer {
+fileprivate class _MsgPackDecodingContainer {
 
     fileprivate var data : Data
 
@@ -857,7 +872,7 @@ fileprivate struct _MsgPackDecodingContainer {
         self.data = data
     }
 
-    public mutating func popFirst(_ n : Int) -> Data {
+    public func popFirst(_ n : Int) -> Data {
         var result = Data(capacity: n)
 
         for _ in 0..<n {
@@ -974,20 +989,21 @@ fileprivate struct _MsgPackKeyedDecodingContainer<K : CodingKey> : KeyedDecoding
 
 fileprivate struct _MsgPackUnkeyedDecodingContainer : UnkeyedDecodingContainer {
     private let decoder : _MsgPackDecoder
-    var codingPath: [CodingKey]
+    private(set) var codingPath: [CodingKey]
+    private(set) var currentIndex: Int
 
-    var count: Int?
+    private(set) public var count: Int?
 
-    var isAtEnd: Bool
+    public var isAtEnd: Bool {
+        return decoder.storage.count == 0
+    }
 
-    var currentIndex: Int
 
-    fileprivate init(decoder : _MsgPackDecoder) {
+    fileprivate init(decoder : _MsgPackDecoder, count: Int) {
         self.decoder = decoder
         self.codingPath = decoder.codingPath
         self.currentIndex = 0
-        self.count = 0
-        self.isAtEnd = false
+        self.count = count
     }
 
     mutating func decodeNil() throws -> Bool {
@@ -1059,11 +1075,25 @@ fileprivate struct _MsgPackUnkeyedDecodingContainer : UnkeyedDecodingContainer {
     }
 
     mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
-        return _MsgPackUnkeyedDecodingContainer(decoder: self.decoder)
+        let header = Int(self.decoder.storage.popFirst(1)[0])
+        let count : Int
+        switch header {
+        case 0x90...0x9f:
+            count = header ^ 0x90
+        case 0xdc:
+            count = Int(unpack(self.decoder.storage.popFirst(2), 2))
+        case 0xdd:
+            count = Int(unpack(self.decoder.storage.popFirst(4), 4))
+        default:
+            throw DecodingError.typeMismatch(UnkeyedDecodingContainer.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Array type."))
+        }
+        return _MsgPackUnkeyedDecodingContainer(decoder: self.decoder, count: count)
     }
 
     mutating func superDecoder() throws -> Decoder {
-        return _MsgPackDecoder(options: self.decoder.options, data: self.decoder.storage.data)
+        return _MsgPackDecoder(options: self.decoder.options, container: self.decoder.storage)
     }
 
 

@@ -2,6 +2,19 @@ import XCTest
 @testable import MsgPackEncoder
 
 public struct Empty : Codable {
+
+    public init() {}
+
+    public init(from: Decoder) {
+        
+    }
+
+}
+
+extension Empty : Equatable {
+    public static func ==(lhs: Empty, rhs: Empty) -> Bool {
+        return true
+    }
 }
 
 struct Sample : Codable {

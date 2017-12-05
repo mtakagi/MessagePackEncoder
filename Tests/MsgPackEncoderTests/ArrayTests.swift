@@ -69,12 +69,27 @@ class ArrayTests : XCTestCase {
         XCTAssertEqual(data, result)
     }
 
+    func testDecodeEmptyArray() {
+        let empty : [Empty] = []
+        let decoder = MessagePackDecoder()
+        let result = try! decoder.decode([Empty].self, from: Data(bytes: [0x90]))
+
+        XCTAssertEqual(result!, empty)
+    }
+
     func testEncodeBoolArray() {
         let encoder = MessagePackEncoder()
         let array : [Bool] = [true, false]
         let result = try! encoder.encode(array)
 
         XCTAssertEqual(result, Data([0x92, 0xc3, 0xc2]))
+    }
+
+    func testDecodeBoolArray() {
+        let decoder = MessagePackDecoder()
+        let result = try! decoder.decode([Bool].self, from: Data([0x92, 0xc3, 0xc2]))
+
+        XCTAssertEqual(result!, [true, false])
     }
 
     func testEncodeNilArray() {
@@ -93,6 +108,16 @@ class ArrayTests : XCTestCase {
         XCTAssertEqual(result, Data([0xdd, 0x00, 0x01, 0x00, 0x00]) + Data([UInt8](repeating: 0x7f, count: 0x1_0000)))
     }
 
+    func testDecodePositiveArray() {
+        let decoder = MessagePackDecoder()
+        let array = [Int](repeating: 0x7f, count: 0x1_0000)
+        let result = try! decoder.decode([Int].self,
+                                         from: Data([0xdd, 0x00, 0x01, 0x00, 0x00])
+                                            + Data([UInt8](repeating: 0x7f, count: 0x1_0000)))
+
+        XCTAssertEqual(result!, array)
+    }
+
     func testEncodeNegativeArray() {
         let encoder = MessagePackEncoder()
         let array = [Int](repeating: -1, count: 16)
@@ -101,12 +126,31 @@ class ArrayTests : XCTestCase {
         XCTAssertEqual(result, Data([0xdc, 0x00, 0x10]) + Data([UInt8](repeating: 0xff, count: 16)))
     }
 
+    func testDecodeNegativeArray() {
+        let decoder = MessagePackDecoder()
+        let array = [Int](repeating: -1, count: 16)
+        let result = try! decoder.decode([Int].self,
+                                         from: Data([0xdc, 0x00, 0x10])
+                                            + Data([UInt8](repeating: 0xff, count: 16)))
+
+        XCTAssertEqual(result!, array)
+    }
+
     func testEncodeStringArray() {
         let encoder = MessagePackEncoder()
         let array = ["foo", "bar", "bazz"]
         let result = try! encoder.encode(array)
 
         XCTAssertEqual(result, Data([0x93, 0xa3, 0x66, 0x6f, 0x6f, 0xa3, 0x62, 0x61, 0x72, 0xa4, 0x62, 0x61, 0x7a, 0x7a]))
+    }
+
+    func testDecodeStringArray() {
+        let decoder = MessagePackDecoder()
+        let array = ["foo", "bar", "bazz"]
+        let result = try! decoder.decode([String].self,
+                                         from: Data([0x93, 0xa3, 0x66, 0x6f, 0x6f, 0xa3, 0x62, 0x61, 0x72, 0xa4, 0x62, 0x61, 0x7a, 0x7a]))
+
+        XCTAssertEqual(result!, array)
     }
 
     func testEncodeUIntArray() {
@@ -127,11 +171,16 @@ class ArrayTests : XCTestCase {
 
     static var allTests = [
         ("testEmptyArray", testEmptyArray),
+        ("testDecodeEmptyArray", testDecodeEmptyArray),
         ("testEncodeBoolArray", testEncodeBoolArray),
+        ("testDecodeBoolArray", testDecodeBoolArray),
         ("testEncodeNilArray", testEncodeNilArray),
         ("testEncodePositiveArray", testEncodePositiveArray),
+        ("testDecodePositiveArray", testDecodePositiveArray),
         ("testEncodeNegativeArray", testEncodeNegativeArray),
+        ("testDecodeNegativeArray", testDecodeNegativeArray),
         ("testEncodeStringArray", testEncodeStringArray),
+        ("testDecodeStringArray", testDecodeStringArray),
         ("testEncodeUIntArray", testEncodeUIntArray),
         ("testEncodeIntArray", testEncodeIntArray),
     ]
