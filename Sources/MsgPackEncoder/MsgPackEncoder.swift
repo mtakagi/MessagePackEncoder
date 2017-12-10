@@ -833,7 +833,8 @@ fileprivate class _MsgPackDecoder : Decoder {
     }
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        let container = _MsgPackKeyedDecodingContainer<Key>(decoder: self, codingPath: self.codingPath)
+        let dict = try unpackMap()
+        let container = _MsgPackKeyedDecodingContainer<Key>(decoder: self, container: dict, codingPath: self.codingPath)
         return KeyedDecodingContainer(container)
     }
 
@@ -857,6 +858,35 @@ fileprivate class _MsgPackDecoder : Decoder {
 
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         return self
+    }
+
+    private func unpackMap() throws -> NSDictionary {
+        let header = Int(self.storage.popFirst(1)[0])
+        let count : Int
+        switch header {
+        case 0x80...0x8f:
+            count = header ^ 0x80
+        case 0xde:
+            count = Int(unpack(self.storage.popFirst(2), 2))
+        case 0xdf:
+            count = Int(unpack(self.storage.popFirst(4), 4))
+        default:
+            throw DecodingError.typeMismatch(Decoder.self,
+                                             DecodingError.Context(codingPath: self.codingPath,
+                                                                   debugDescription: "Not a Map type."))
+        }
+        let dictionary = NSMutableDictionary(capacity: count)
+
+        for _ in 0..<count {
+            let key = try self.unbox()
+            let value = try self.unbox()
+
+            if let key = key {
+                dictionary[key] = value
+            }
+        }
+
+        return dictionary
     }
 }
 
@@ -891,19 +921,24 @@ fileprivate struct _MsgPackKeyedDecodingContainer<K : CodingKey> : KeyedDecoding
 
     fileprivate let decoder : _MsgPackDecoder
     var codingPath: [CodingKey]
+    private let dictionary : NSDictionary
 
 
     var allKeys: [Key] {
-        return []
+        return dictionary.allKeys.flatMap() {
+            let key = $0 as! String
+            return Key(stringValue: key)
+        }
     }
 
-    fileprivate init(decoder : _MsgPackDecoder, codingPath : [CodingKey] = []) {
+    fileprivate init(decoder : _MsgPackDecoder, container : NSDictionary, codingPath : [CodingKey] = []) {
         self.decoder = decoder
         self.codingPath = codingPath
+        self.dictionary = container
     }
 
     func contains(_ key: Key) -> Bool {
-        fatalError()
+        return dictionary[key.stringValue] != nil
     }
 
     func decodeNil(forKey key: Key) throws -> Bool {
@@ -967,7 +1002,7 @@ fileprivate struct _MsgPackKeyedDecodingContainer<K : CodingKey> : KeyedDecoding
     }
 
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-        fatalError()
+        return dictionary[key.stringValue] as! T
     }
 
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
@@ -1492,6 +1527,39 @@ extension _MsgPackDecoder {
         }
 
         return decode
+    }
+
+    fileprivate func unbox() throws -> Any? {
+        guard let header = self.storage.data.first else {
+            fatalError()
+        }
+
+        switch header {
+        case 0x00...0x7f:
+            return try unbox(as: UInt8.self)
+        case 0xa0...0xbf:
+            fallthrough
+        case 0xd9...0xdb:
+            return try unbox(as: String.self)
+        case 0xc0:
+            return nil
+        case 0xc2...0xc3:
+            return try unbox(as: Bool.self)
+        case 0xc4...0xc6:
+            return try unbox(as: Data.self)
+        case 0xca:
+            return try unbox(as: Float.self)
+        case 0xcb:
+            return try unbox(as: Double.self)
+        case 0xcc...0xcf:
+            return try unbox(as: UInt.self)
+        case 0xd0...0xd3:
+            fallthrough
+        case 0xe0...0xff:
+            return try unbox(as: Int.self)
+        default:
+            fatalError()
+        }
     }
 }
 
