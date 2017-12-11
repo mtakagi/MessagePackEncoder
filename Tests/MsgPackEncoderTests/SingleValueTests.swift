@@ -20,9 +20,9 @@ class SingleValueTests : XCTestCase {
 
     func testDecodeNil() {
         let decoder = MessagePackDecoder()
-        let result = try! decoder.decode(Bool.self, from: Data([0xc0]))
+        let result = try! decoder.decode(Sample?.self, from: Data([0xc0]))
 
-        XCTAssertNil(result)
+        XCTAssertNil(result!)
     }
 
     func testEncodeTrue() {

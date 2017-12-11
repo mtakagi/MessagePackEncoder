@@ -833,7 +833,12 @@ fileprivate class _MsgPackDecoder : Decoder {
     }
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        let dict = try unpackMap()
+        let dict : NSDictionary
+        if let dictionary = self.storage.pop() as? NSDictionary {
+            dict = dictionary
+        } else {
+            dict = try unpackMap()
+        }
         let container = _MsgPackKeyedDecodingContainer<Key>(decoder: self, container: dict, codingPath: self.codingPath)
         return KeyedDecodingContainer(container)
     }
@@ -893,6 +898,7 @@ fileprivate class _MsgPackDecoder : Decoder {
 fileprivate class _MsgPackDecodingContainer {
 
     fileprivate var data : Data
+    private var container : [Any] = []
 
     public var count : Int {
         return data.count
@@ -912,6 +918,14 @@ fileprivate class _MsgPackDecodingContainer {
         }
 
         return result
+    }
+
+    public func push(container : Any) {
+        self.container.append(container)
+    }
+
+    public func pop() -> Any? {
+        return self.container.popLast()
     }
 }
 
@@ -946,63 +960,67 @@ fileprivate struct _MsgPackKeyedDecodingContainer<K : CodingKey> : KeyedDecoding
     }
 
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Bool
     }
 
     func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Int
     }
 
     func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Int8
     }
 
     func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Int16
     }
 
     func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Int32
     }
 
     func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Int64
     }
 
     func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-        fatalError()
+        return self.dictionary[key.stringValue] as! UInt
     }
 
     func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! UInt8
     }
 
     func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! UInt16
     }
 
     func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! UInt32
     }
 
     func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
-        fatalError()
+        return self.dictionary[key.stringValue] as! UInt64
     }
 
     func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Float
     }
 
     func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
-        fatalError()
+        return self.dictionary[key.stringValue] as! Double
     }
 
     func decode(_ type: String.Type, forKey key: Key) throws -> String {
-        fatalError()
+        return self.dictionary[key.stringValue] as! String
     }
 
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-        return dictionary[key.stringValue] as! T
+        let value = dictionary[key.stringValue]
+        if let value = value, value is NSDictionary || value is NSMutableDictionary {
+            return try self.decoder.unbox(as: T.self, value: value)!
+        }
+        return value as! T
     }
 
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
@@ -1333,6 +1351,10 @@ extension _MsgPackDecoder {
             return nil
         }
 
+        if (UInt8(0x00)...UInt8(0x7f)).contains(header) {
+            return header
+        }
+
         guard header == 0xcc, let value = self.storage.data.popFirst() else {
             throw DecodingError.typeMismatch(UInt8.self,
                                              DecodingError.Context(codingPath: self.codingPath,
@@ -1504,7 +1526,7 @@ extension _MsgPackDecoder {
     }
 
     fileprivate func unbox<T : Decodable>(as type: T.Type) throws -> T? {
-        guard self.storage.data.first != 0xc0 && !self.storage.data.isEmpty else {
+        guard /* self.storage.data.first != 0xc0 && */ !self.storage.data.isEmpty else {
             return nil
         }
 
@@ -1529,6 +1551,18 @@ extension _MsgPackDecoder {
         return decode
     }
 
+    fileprivate func unbox<T : Decodable>(as type: T.Type, value : Any) throws -> T? {
+        guard value is NSDictionary || value is NSMutableDictionary else {
+            return nil
+        }
+
+        self.storage.push(container: value)
+        let decode = try T(from: self)
+        let _ = self.storage.pop()
+
+        return decode
+    }
+
     fileprivate func unbox() throws -> Any? {
         guard let header = self.storage.data.first else {
             fatalError()
@@ -1537,6 +1571,10 @@ extension _MsgPackDecoder {
         switch header {
         case 0x00...0x7f:
             return try unbox(as: UInt8.self)
+        case 0x80...0x8f:
+            fallthrough
+        case 0xde...0xdf:
+            return try unpackMap()
         case 0xa0...0xbf:
             fallthrough
         case 0xd9...0xdb:
