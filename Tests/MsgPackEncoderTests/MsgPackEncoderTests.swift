@@ -57,6 +57,18 @@ struct NestStruct : Codable {
     var nested : Nest
 }
 
+extension NestStruct : Equatable {
+    static func ==(lhs: NestStruct, rhs: NestStruct) -> Bool {
+        return lhs.nest == rhs.nest && lhs.nested == rhs.nested
+    }
+}
+
+extension NestStruct.Nest : Equatable {
+    static func ==(lhs: NestStruct.Nest, rhs: NestStruct.Nest) -> Bool {
+        return lhs.nest == rhs.nest
+    }
+}
+
 struct Unkeyed : Codable {
     var empty : Empty?
     var bool : Bool
@@ -242,6 +254,13 @@ class MsgPackEncoderTests: XCTestCase {
         XCTAssertEqual(result, Data([0x82, 0xa4, 0x6e, 0x65, 0x73, 0x74, 0xa5, 0x4f, 0x75, 0x74, 0x65, 0x72, 0xa6, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x81, 0xa4, 0x6e, 0x65, 0x73, 0x74, 0xa5, 0x49, 0x6e, 0x6e, 0x65, 0x72]))
     }
 
+    func testDecodeNestedStruct() {
+        let decoder = MessagePackDecoder()
+        let nested = NestStruct(nest: "Outer", nested: NestStruct.Nest(nest: "Inner"))
+        let result = try! decoder.decode(NestStruct.self, from: Data([0x82, 0xa4, 0x6e, 0x65, 0x73, 0x74, 0xa5, 0x4f, 0x75, 0x74, 0x65, 0x72, 0xa6, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x81, 0xa4, 0x6e, 0x65, 0x73, 0x74, 0xa5, 0x49, 0x6e, 0x6e, 0x65, 0x72]))
+
+        XCTAssertEqual(result, nested)
+    }
 
     func testEncodeUnkeyedStruct() {
         let encoder = MessagePackEncoder()
@@ -308,10 +327,16 @@ class MsgPackEncoderTests: XCTestCase {
 
     static var allTests = [
         ("testEncodeSample", testEncodeSample),
+        ("testDecodeSample", testDecodeSample),
         ("testEncodeNested", testEncodeNested),
+        ("testDecodeNested", testDecodeNested),
         ("testEncodeNestedStruct", testEncodeNestedStruct),
+        ("testDecodeNestedStruct", testDecodeNestedStruct),
         ("testEncodeUnkeyedStruct", testEncodeUnkeyedStruct),
+        ("testDecodeUnkeyedStruct", testDecodeUnkeyedStruct),
         ("testEncodeKeyedStruct", testEncodeKeyedStruct),
+        ("testDecodeKeyedStruct", testDecodeKeyedStruct),
         ("testEmptyStruct", testEmptyStruct),
+        ("testDecodeEmptyStruct", testDecodeEmptyStruct),
     ]
 }
