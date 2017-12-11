@@ -27,10 +27,11 @@
 		653B778D1FD04FEF005BE329 /* FloatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653B778C1FD04FEF005BE329 /* FloatTests.swift */; };
 		653B778F1FD13BAA005BE329 /* ArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653B778E1FD13BAA005BE329 /* ArrayTests.swift */; };
 		653B77921FD198F6005BE329 /* MapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653B77901FD19831005BE329 /* MapTests.swift */; };
+		6585567C1FDF1916006869B8 /* TestStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6585567A1FDF18D9006869B8 /* TestStructs.swift */; };
 		65ABED9F1FD29CAE00600654 /* SingleValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65ABED9D1FD2875F00600654 /* SingleValueTests.swift */; };
 		65ABEDA21FD2D35A00600654 /* UInt8ArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65ABEDA01FD2D35100600654 /* UInt8ArrayTests.swift */; };
 		OBJ_21 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
-		OBJ_27 /* MsgPackEncoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_12 /* MsgPackEncoderTests.swift */; };
+		OBJ_27 /* StructTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_12 /* StructTests.swift */; };
 		OBJ_29 /* MsgPackEncoder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "MsgPackEncoder::MsgPackEncoder::Product" /* MsgPackEncoder.framework */; };
 		OBJ_36 /* MsgPackEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_9 /* MsgPackEncoder.swift */; };
 /* End PBXBuildFile section */
@@ -71,11 +72,12 @@
 		653B778C1FD04FEF005BE329 /* FloatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatTests.swift; sourceTree = "<group>"; };
 		653B778E1FD13BAA005BE329 /* ArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayTests.swift; sourceTree = "<group>"; };
 		653B77901FD19831005BE329 /* MapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTests.swift; sourceTree = "<group>"; };
+		6585567A1FDF18D9006869B8 /* TestStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestStructs.swift; sourceTree = "<group>"; };
 		65ABED9D1FD2875F00600654 /* SingleValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleValueTests.swift; sourceTree = "<group>"; };
 		65ABEDA01FD2D35100600654 /* UInt8ArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UInt8ArrayTests.swift; sourceTree = "<group>"; };
 		"MsgPackEncoder::MsgPackEncoder::Product" /* MsgPackEncoder.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MsgPackEncoder.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"MsgPackEncoder::MsgPackEncoderTests::Product" /* MsgPackEncoderTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = MsgPackEncoderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		OBJ_12 /* MsgPackEncoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgPackEncoderTests.swift; sourceTree = "<group>"; };
+		OBJ_12 /* StructTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructTests.swift; sourceTree = "<group>"; };
 		OBJ_6 /* Package.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		OBJ_9 /* MsgPackEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgPackEncoder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -110,7 +112,7 @@
 		OBJ_11 /* MsgPackEncoderTests */ = {
 			isa = PBXGroup;
 			children = (
-				OBJ_12 /* MsgPackEncoderTests.swift */,
+				OBJ_12 /* StructTests.swift */,
 				653B77861FCBF7DE005BE329 /* BinaryTests.swift */,
 				653B77881FCC473A005BE329 /* StringTests.swift */,
 				653B778A1FCCEDB2005BE329 /* IntTests.swift */,
@@ -119,6 +121,7 @@
 				653B77901FD19831005BE329 /* MapTests.swift */,
 				65ABED9D1FD2875F00600654 /* SingleValueTests.swift */,
 				65ABEDA01FD2D35100600654 /* UInt8ArrayTests.swift */,
+				6585567A1FDF18D9006869B8 /* TestStructs.swift */,
 			);
 			name = MsgPackEncoderTests;
 			path = Tests/MsgPackEncoderTests;
@@ -259,7 +262,8 @@
 			files = (
 				653B778B1FCCEDB2005BE329 /* IntTests.swift in Sources */,
 				65ABEDA21FD2D35A00600654 /* UInt8ArrayTests.swift in Sources */,
-				OBJ_27 /* MsgPackEncoderTests.swift in Sources */,
+				OBJ_27 /* StructTests.swift in Sources */,
+				6585567C1FDF1916006869B8 /* TestStructs.swift in Sources */,
 				653B77891FCC473A005BE329 /* StringTests.swift in Sources */,
 				65ABED9F1FD29CAE00600654 /* SingleValueTests.swift in Sources */,
 				653B778F1FD13BAA005BE329 /* ArrayTests.swift in Sources */,
